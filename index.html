@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ultra-Fast 360° Signal & Live Ticker Terminal</title>
+  <title>360° AI Crypto Demo Terminal — Smart Auto &amp; Manual Guard</title>
   <style>
     :root {
-      --bg: #070b14;
-      --panel: #0e1626;
-      --panel-2: #131f36;
-      --border: #1e2d4a;
+      --bg: #060a12;
+      --panel: #0d1524;
+      --panel-2: #121e33;
+      --border: #1e2f4d;
       --text: #eef4ff;
-      --muted: #8fa3c7;
+      --muted: #8ea4c8;
       --buy: #00e676;
       --buy-bg: rgba(0, 230, 118, 0.14);
       --sell: #ff3d57;
@@ -21,294 +21,717 @@
       --accent: #38bdf8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", system-ui, sans-serif; }
-    body { background: radial-gradient(circle at top right, #102040 0%, var(--bg) 55%); color: var(--text); min-height: 100vh; padding: 16px; }
-    .topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; }
-    .brand h1 { font-size: 1.15rem; color: #fff; }
-    .brand p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
-    .status-group { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-    .pill { padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; border: 1px solid var(--border); background: var(--panel-2); }
+    body { background: radial-gradient(circle at top right, #102344 0%, var(--bg) 55%); color: var(--text); min-height: 100vh; padding: 14px; }
+    .topbar, .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+    .topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .brand h1 { font-size: 1.12rem; color: #fff; }
+    .brand p { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+    .row-flex { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .pill { padding: 6px 11px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border); background: var(--panel-2); }
     .pill.live { color: var(--buy); border-color: rgba(0,230,118,0.4); background: var(--buy-bg); }
     .pill.warn { color: var(--hold); border-color: rgba(255,193,7,0.4); background: var(--hold-bg); }
-    .btn { border: none; border-radius: 10px; padding: 8px 14px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+    .pill.stop { color: var(--sell); border-color: rgba(255,61,87,0.5); background: var(--sell-bg); }
+    .btn { border: none; border-radius: 9px; padding: 7px 12px; font-weight: 700; font-size: 0.78rem; cursor: pointer; }
     .btn:active { transform: scale(0.97); }
     .btn-accent { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #04101c; }
     .btn-buy { background: var(--buy); color: #041c0f; }
     .btn-sell { background: var(--sell); color: #fff; }
     .btn-ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
-    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
-    .card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
-    .card .val { font-size: 1.35rem; font-weight: 800; margin-top: 6px; }
-    .card .sub { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
-    .main-layout { display: grid; grid-template-columns: 2.1fr 1fr; gap: 14px; margin-bottom: 14px; }
-    @media (max-width: 980px) { .main-layout { grid-template-columns: 1fr; } }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+    .grid-2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    @media (max-width: 980px) { .grid-2, .grid-equal { grid-template-columns: 1fr; } }
+
+    .kpi-label { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; }
+    .kpi-val { font-size: 1.32rem; font-weight: 800; margin-top: 5px; }
+    .kpi-sub { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
+
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-    th, td { padding: 11px 10px; text-align: left; border-bottom: 1px solid rgba(30,45,74,0.65); white-space: nowrap; }
-    th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
-    .price-cell { font-weight: 800; font-size: 0.95rem; border-radius: 6px; transition: background-color 0.25s ease, color 0.25s ease; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    th, td { padding: 9px 8px; text-align: left; border-bottom: 1px solid rgba(30,47,77,0.65); white-space: nowrap; }
+    th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; }
+    tbody tr.selectable-row { cursor: pointer; transition: background-color 0.15s ease; }
+    tbody tr.selectable-row:hover { background: rgba(56, 189, 248, 0.08); }
+    tbody tr.active-coin { background: rgba(56, 189, 248, 0.15); outline: 1px solid rgba(56, 189, 248, 0.45); }
+
+    .price-cell { font-weight: 800; border-radius: 6px; transition: background-color 0.25s ease, color 0.25s ease; }
     .flash-up { background-color: rgba(0, 230, 118, 0.28) !important; color: var(--buy) !important; }
     .flash-down { background-color: rgba(255, 61, 87, 0.28) !important; color: var(--sell) !important; }
-    .sig-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.76rem; }
-    .sig-buy { color: var(--buy); background: var(--buy-bg); border: 1px solid rgba(0,230,118,0.4); }
-    .sig-sell { color: var(--sell); background: var(--sell-bg); border: 1px solid rgba(255,61,87,0.4); }
-    .sig-hold { color: var(--hold); background: var(--hold-bg); border: 1px solid rgba(255,193,7,0.4); }
+
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 7px; font-weight: 800; font-size: 0.73rem; }
+    .b-buy { color: var(--buy); background: var(--buy-bg); border: 1px solid rgba(0,230,118,0.4); }
+    .b-sell { color: var(--sell); background: var(--sell-bg); border: 1px solid rgba(255,61,87,0.4); }
+    .b-hold { color: var(--hold); background: var(--hold-bg); border: 1px solid rgba(255,193,7,0.4); }
+
     .pos-up { color: var(--buy); font-weight: 700; }
     .pos-down { color: var(--sell); font-weight: 700; }
-    .intel-list { display: flex; flex-direction: column; gap: 10px; max-height: 430px; overflow-y: auto; }
-    .intel-item { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; }
-    .intel-item.buy-border { border-left-color: var(--buy); }
-    .intel-item.sell-border { border-left-color: var(--sell); }
-    .intel-head { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 4px; }
-    .intel-meta { color: var(--muted); font-size: 0.75rem; line-height: 1.4; }
-    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
-    .mini-actions { display: flex; gap: 6px; }
-    .note-foot { margin-top: 12px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+    .box-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+    .box-item { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 9px; padding: 10px 12px; font-size: 0.8rem; }
+    .box-item.buy { border-left-color: var(--buy); }
+    .box-item.sell { border-left-color: var(--sell); }
+
+    .auto-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+    .plan-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+    .plan-chip .k { font-size: 0.7rem; color: var(--muted); }
+    .plan-chip .v { font-size: 0.88rem; font-weight: 800; margin-top: 2px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-top: 10px; }
+    label { display: block; font-size: 0.74rem; color: var(--muted); margin-bottom: 4px; }
+    input, select { width: 100%; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px; font-size: 0.84rem; }
+    .foot { text-align: center; font-size: 0.74rem; color: var(--muted); margin-top: 8px; }
   </style>
 </head>
 <body>
+
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ Ultra-Fast 360° Signal &amp; Live Ticker Terminal</h1>
-      <p>চার্ট ছাড়া সরাসরি লাইভ প্রাইস, BUY/SELL সিগন্যাল ও ডেমো পজিশন ট্র্যাকার (Kraken WebSocket — No API Key)</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Smart Auto &amp; Manual Guard</h1>
+      <p>কোনো API Key বা চার্ট ছাড়াই Kraken-এর আসল লাইভ দাম, ক্লিকে অটো-প্ল্যান, Manual/Auto ফলো, ডাইনামিক লস-লিমিট ও ফিউচার অ্যালার্ট</p>
     </div>
-    <div class="status-group">
-      <span id="wsStatus" class="pill warn">Connecting Stream...</span>
-      <span id="tickRate" class="pill">Update: -- ms</span>
-      <button id="autoBtn" class="btn btn-accent" onclick="toggleAuto()">AUTO SIGNAL: OFF</button>
-      <button class="btn btn-ghost" onclick="resetDemo()">Reset ($10,000)</button>
+    <div class="row-flex">
+      <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
+      <span id="msBadge" class="pill">Tick: -- ms</span>
+      <span id="ksBadge" class="pill live">Kill-Switch: Safe ($0/$500)</span>
+      <button id="autoToggleBtn" class="btn btn-accent" onclick="toggleAutoBot()">AUTO ACTION: OFF</button>
+      <button class="btn btn-ghost" onclick="resetAccount()">Reset ($10,000)</button>
     </div>
   </div>
 
-  <div class="summary-grid">
-    <div class="card"><div class="label">Available Cash</div><div id="cashVal" class="val">$10,000.00</div><div class="sub">Demo Simulation Balance</div></div>
-    <div class="card"><div class="label">Active Margin / Invested</div><div id="invVal" class="val">$0.00</div><div id="posCount" class="sub">0 Open Positions</div></div>
-    <div class="card"><div class="label">Live Unrealized PnL</div><div id="pnlVal" class="val">$0.00</div><div id="dailyLossSub" class="sub">Daily Loss Guard: $0 / $500</div></div>
-    <div class="card"><div class="label">Total Equity</div><div id="eqVal" class="val">$10,000.00</div><div id="topCall" class="sub">Top Signal: Scanning...</div></div>
-  </div>
-
-  <div class="main-layout">
+  <!-- 1. Account Summary (4 Cards) -->
+  <div class="grid-4">
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h2 style="font-size:1rem;">📊 লাইভ মার্কেট ও BUY / SELL সিগন্যাল বোর্ড</h2>
-        <span style="font-size:0.75rem; color:var(--muted);">দ্রুত অ্যাকশনের জন্য BUY বা SELL চাপুন</span>
+      <div class="kpi-label">Available Cash Balance</div>
+      <div id="cCash" class="kpi-val">$10,000.00</div>
+      <div class="kpi-sub">Demo Simulation ($10,000 Start)</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Invested / Margin Used</div>
+      <div id="cInv" class="kpi-val">$0.00</div>
+      <div id="cPosSub" class="kpi-sub">0 Active Positions</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Live Profit / Loss</div>
+      <div id="cPnl" class="kpi-val">$0.00</div>
+      <div id="cLossSub" class="kpi-sub">Daily Loss Guard: $0.00 / $500.00</div>
+    </div>
+    <div class="card">
+      <div class="kpi-label">Current Balance (Equity)</div>
+      <div id="cEq" class="kpi-val">$10,000.00</div>
+      <div id="cBotSub" class="kpi-sub">Bot Guard: Active on Auto &amp; Manual</div>
+    </div>
+  </div>
+
+  <!-- 2. Clickable Live Market Board + Future Good Possibility Alerts -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
+        <h2 style="font-size:0.98rem;">📊 লাইভ মার্কেট বোর্ড (যেকোনো কয়েনে ক্লিক করুন)</h2>
+        <span style="font-size:0.74rem; color:var(--accent);">ক্লিক করলে ডান/নিচে অটো-প্ল্যান ও কারণ আসবে</span>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Coin</th><th>Live Price</th><th>24h %</th><th>Trend &amp; Momentum</th><th>360° Score</th><th>Action Call</th><th>Quick Trade ($500)</th></tr></thead>
-          <tbody id="marketBody"></tbody>
+          <thead>
+            <tr>
+              <th>Coin</th>
+              <th>Live Price (Real)</th>
+              <th>24h %</th>
+              <th>24h High/Low</th>
+              <th>360° Score</th>
+              <th>Suggested Side</th>
+              <th>Quick ($500)</th>
+            </tr>
+          </thead>
+          <tbody id="mktBody"></tbody>
         </table>
       </div>
     </div>
+
     <div class="card">
-      <h2 style="font-size:1rem; margin-bottom:10px;">🧠 রিয়েল-টাইম মার্কেট ইন্টেলিজেন্স ও কারণ</h2>
-      <div id="intelFeed" class="intel-list"></div>
+      <h2 style="font-size:0.98rem; margin-bottom:8px;">🔮 Future Good Possibility Alerts (সম্ভাব্য ট্রেড)</h2>
+      <div id="futureAlertBox" class="box-list"></div>
     </div>
   </div>
 
-  <div class="bottom-grid">
+  <!-- 3. Selected Coin Full Auto-Generated Plan + Manual/Bot Order -->
+  <div class="grid-2">
     <div class="card">
-      <h2 style="font-size:1rem; margin-bottom:10px;">📌 ওপেন ডেমো পজিশন (Auto SL / TP)</h2>
+      <div class="row-flex" style="justify-content:space-between;">
+        <h2 style="font-size:0.98rem;">🎯 সিলেক্টেড কয়েনের অটো-জেনারেটেড ট্রেড প্ল্যান ও Manual অর্ডার</h2>
+        <div style="width:150px;">
+          <select id="studyCoin" onchange="selectCoin(this.value)">
+            <option value="BTC">BTC/USD</option>
+            <option value="ETH">ETH/USD</option>
+            <option value="SOL">SOL/USD</option>
+            <option value="XRP">XRP/USD</option>
+            <option value="DOGE">DOGE/USD</option>
+            <option value="ADA">ADA/USD</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="autoPlanCard" class="box-item" style="margin-top:10px;"></div>
+
+      <div class="form-grid">
+        <div>
+          <label>Direction</label>
+          <select id="mDir">
+            <option value="BUY">BUY (Long)</option>
+            <option value="SELL">SELL (Short)</option>
+          </select>
+        </div>
+        <div>
+          <label>Low-Margin Amount ($)</label>
+          <input id="mAmt" type="number" min="10" step="10" value="300" />
+        </div>
+        <div>
+          <label>Stop-Loss ($)</label>
+          <input id="mSl" type="number" step="0.0001" />
+        </div>
+        <div>
+          <label>Auto-Sell Target ($)</label>
+          <input id="mTp" type="number" step="0.0001" />
+        </div>
+      </div>
+      <div class="row-flex" style="margin-top:10px;">
+        <button class="btn btn-accent" onclick="applyAutoPlanToInputs(true)">⚡ Auto-Generate SL / Margin / Target</button>
+        <button class="btn btn-buy" onclick="submitManualOrder()">✅ Confirm Order (Bot Managed)</button>
+        <span id="mMsg" style="font-size:0.78rem; color:var(--muted);"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:0.98rem; margin-bottom:8px;">🧠 রানিং ট্রেড ডাইনামিক লস-লিমিট ও কারণ লগ</h2>
+      <div id="guardLogBox" class="box-list"></div>
+    </div>
+  </div>
+
+  <!-- 4. Active Positions + Trade Journal CSV -->
+  <div class="grid-equal">
+    <div class="card">
+      <h2 style="font-size:0.98rem; margin-bottom:8px;">📌 চলমান পজিশন (Auto &amp; Manual — Dynamic SL/TP)</h2>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Coin</th><th>Side</th><th>Entry</th><th>SL / TP</th><th>Live PnL</th><th>Close</th></tr></thead>
-          <tbody id="posBody"><tr><td colspan="6" style="color:var(--muted); text-align:center;">কোনো ওপেন পজিশন নেই</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Coin</th>
+              <th>Type</th>
+              <th>Entry</th>
+              <th>Dynamic SL</th>
+              <th>Target</th>
+              <th>Live PnL</th>
+              <th>Close</th>
+            </tr>
+          </thead>
+          <tbody id="posBody"><tr><td colspan="7" style="text-align:center; color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr></tbody>
         </table>
       </div>
     </div>
+
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-        <h2 style="font-size:1rem;">📒 ক্লোজড ট্রেড লগ</h2>
-        <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+      <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
+        <h2 style="font-size:0.98rem;">📒 ট্রেড জার্নাল (CSV Export)</h2>
+        <button class="btn btn-ghost" onclick="downloadJournalCSV()">📥 Download CSV</button>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Time</th><th>Coin</th><th>Side</th><th>Entry → Exit</th><th>PnL ($)</th></tr></thead>
-          <tbody id="histBody"><tr><td colspan="5" style="color:var(--muted); text-align:center;">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr></tbody>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Coin</th>
+              <th>Side</th>
+              <th>Entry → Exit</th>
+              <th>PnL ($)</th>
+              <th>Exit Reason</th>
+            </tr>
+          </thead>
+          <tbody id="histBody"><tr><td colspan="6" style="text-align:center; color:var(--muted);">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <div class="note-foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — প্রদর্শিত BUY/SELL সিগন্যাল বাস্তব বাজারে লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — দাম Kraken লাইভ ফিড থেকে এলেও ট্রেডিং সিগন্যাল ও ডাইনামিক SL বাস্তব বাজারে নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
-    const PAIRS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
-    const state = { cash: 10000, positions: [], history: [], dailyLoss: 0, autoSignal: false, lastAutoTime: {}, lastTickTime: performance.now(), ticks: {} };
+    const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
 
-    PAIRS.forEach(sym => {
-      const coin = sym.split("/")[0];
-      state.ticks[coin] = { coin, price: 0, prevPrice: 0, chg24h: 0, high24h: 0, low24h: 0, historyPrices: [], signal: "HOLD", score: 50, trendText: "Analyzing...", reason: "লাইভ ডেটা সংগ্রহ চলছে..." };
+    const app = {
+      cash: 10000,
+      positions: [],
+      history: [],
+      dailyLoss: 0,
+      killSwitch: false,
+      autoBot: false,
+      selectedCoin: "BTC",
+      lastAutoTime: {},
+      lastTick: performance.now(),
+      guardNotes: ["বট প্রস্তুত: Auto Action বা Manual অর্ডার দিলে রানিং অবস্থায় প্রাইস-মোমেন্টাম ও রেঞ্জ অনুযায়ী লস-লিমিট অ্যাডজাস্ট হবে।"],
+      coins: {}
+    };
+
+    SYMBOLS.forEach(pair => {
+      const c = pair.split("/")[0];
+      app.coins[c] = {
+        coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0, vol24: 0,
+        prices: [], signal: "HOLD", score360: 50,
+        directionPlan: "BUY", lowMarginAmt: 300, slPlan: 0, tpPlan: 0,
+        futurePossibility: "Waiting for setup",
+        whyText: "লাইভ মার্কেট ডেটা সংগ্রহ হচ্ছে..."
+      };
     });
 
-    function fmtPrice(p) {
-      if (!p || p <= 0) return "--";
-      if (p >= 1000) return "$" + p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if (p >= 1) return "$" + p.toFixed(4);
-      return "$" + p.toFixed(6);
+    function fmt(n) {
+      if (!n || isNaN(n)) return "--";
+      if (n >= 1000) return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (n >= 1) return "$" + n.toFixed(4);
+      return "$" + n.toFixed(6);
     }
 
-    function computeSignal(t) {
-      const arr = t.historyPrices;
-      if (arr.length < 8) { t.signal = "HOLD"; t.score = 52; t.trendText = "Warming Up"; t.reason = "রিয়েল-টাইম প্রাইস স্যাম্পল সংগ্রহ হচ্ছে।"; return; }
-      const shortSlice = arr.slice(-5), longSlice = arr.slice(-20);
-      const shortAvg = shortSlice.reduce((a, b) => a + b, 0) / shortSlice.length;
-      const longAvg = longSlice.reduce((a, b) => a + b, 0) / longSlice.length;
-      const momentumPct = ((t.price - shortSlice[0]) / shortSlice[0]) * 100;
-      let score = 50 + (shortAvg > longAvg ? 14 : -14) + (momentumPct > 0.08 ? 15 : (momentumPct < -0.08 ? -15 : 0)) + (t.chg24h > 1.5 ? 8 : (t.chg24h < -1.5 ? -8 : 0));
-      const range24 = Math.max(t.high24h - t.low24h, 1e-8);
-      const posInRange = (t.price - t.low24h) / range24;
+    function pushGuardNote(txt) {
+      const stamp = new Date().toLocaleTimeString();
+      app.guardNotes.unshift(`[${stamp}] ${txt}`);
+      if (app.guardNotes.length > 18) app.guardNotes.pop();
+    }
 
-      if (score >= 64 && posInRange < 0.92) {
-        t.signal = "BUY"; t.score = Math.min(91, score);
-        t.trendText = `Bullish (${momentumPct >= 0 ? "+" : ""}${momentumPct.toFixed(2)}%)`;
-        t.reason = `স্বল্পমেয়াদী গড় দীর্ঘমেয়াদী গড়ের ওপরে এবং মোমেন্টাম ইতিবাচক।`;
-      } else if (score <= 38 && posInRange > 0.08) {
-        t.signal = "SELL"; t.score = Math.min(91, 100 - score);
-        t.trendText = `Bearish (${momentumPct.toFixed(2)}%)`;
-        t.reason = `স্বল্পমেয়াদী চাপ নিম্নমুখী এবং মোমেন্টাম নেতিবাচক।`;
+    function computeCoinIntelligence(t) {
+      const s = t.prices;
+      if (s.length < 5 || t.price <= 0) {
+        t.signal = "HOLD"; t.score360 = 50;
+        t.directionPlan = "BUY";
+        t.lowMarginAmt = Math.max(50, Math.round(app.cash * 0.03));
+        t.futurePossibility = "প্রাথমিক টিক সংগ্রহ চলছে";
+        t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি বিশ্লেষণ শুরু হচ্ছে।";
+        return;
+      }
+
+      const fastLen = Math.min(4, s.length);
+      const slowLen = Math.min(18, s.length);
+      const fastAvg = s.slice(-fastLen).reduce((a, b) => a + b, 0) / fastLen;
+      const slowAvg = s.slice(-slowLen).reduce((a, b) => a + b, 0) / slowLen;
+      const momPct = ((t.price - s[0]) / s[0]) * 100;
+
+      const range24 = Math.max(t.high24 - t.low24, t.price * 0.015);
+      const rangePos = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
+      const volEst = Math.max(t.price * 0.008, range24 * 0.018);
+
+      let bull = 48, bear = 48;
+      if (fastAvg > slowAvg) bull += 15; else bear += 15;
+      if (momPct > 0.05) bull += 12; else if (momPct < -0.05) bear += 12;
+      if (t.chg24 > 1.0) bull += 7; else if (t.chg24 < -1.0) bear += 7;
+      if (rangePos < 0.35 && momPct >= 0) bull += 6;
+      if (rangePos > 0.75 && momPct <= 0) bear += 6;
+
+      // Low margin suggestion: smaller allocation when volatility/range is stretched
+      const riskFactor = (momPct > 0.6 || momPct < -0.6) ? 0.025 : 0.04;
+      t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * riskFactor), 1000));
+
+      if (bull >= bear && bull >= 60) {
+        t.signal = "BUY";
+        t.directionPlan = "BUY";
+        t.score360 = Math.min(92, bull);
+        t.slPlan = Math.max(0.000001, t.price - volEst * 0.9);
+        t.tpPlan = t.price + volEst * 1.8;
+        t.futurePossibility = t.score360 >= 68
+          ? `উচ্চ সম্ভাবনা: স্বল্পমেয়াদী BUY (${t.score360}%) — সাপোর্ট/মোমেন্টাম অনুকূলে`
+          : `ভালো সম্ভাবনা: পুলব্যাকে BUY (${t.score360}%)`;
+        t.whyText = `স্বল্পমেয়াদী গড় দীর্ঘমেয়াদী গড়ের ওপরে এবং মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%। লো-মার্জিন হিসেবে কম ঝুঁকিতে টাইট স্টপ-লস (${fmt(t.slPlan)}) ও টার্গেট (${fmt(t.tpPlan)}) সেট করা হয়েছে।`;
+      } else if (bear > bull && bear >= 60) {
+        t.signal = "SELL";
+        t.directionPlan = "SELL";
+        t.score360 = Math.min(92, bear);
+        t.slPlan = t.price + volEst * 0.9;
+        t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
+        t.futurePossibility = t.score360 >= 68
+          ? `উচ্চ সম্ভাবনা: স্বল্পমেয়াদী SELL (${t.score360}%) — নিম্নমুখী চাপ সক্রিয়`
+          : `ভালো সম্ভাবনা: রেজিস্ট্যান্সে SELL (${t.score360}%)`;
+        t.whyText = `নিম্নমুখী মোমেন্টাম (${momPct.toFixed(2)}%) ও 24h পরিবর্তন (${t.chg24.toFixed(2)}%) SELL দিককে সমর্থন দিচ্ছে। লো-মার্জিন সাইজ ও সুরক্ষিত SL (${fmt(t.slPlan)}) গণনা করা হয়েছে।`;
       } else {
-        t.signal = "HOLD"; t.score = Math.max(45, Math.min(62, score));
-        t.trendText = `Sideways (${momentumPct >= 0 ? "+" : ""}${momentumPct.toFixed(2)}%)`;
-        t.reason = "স্পষ্ট ব্রেকআউট নিশ্চিত নয় — অপেক্ষা করা নিরাপদ।";
+        t.signal = "HOLD";
+        t.directionPlan = fastAvg >= slowAvg ? "BUY" : "SELL";
+        t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
+        t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
+        t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
+        t.futurePossibility = `ওয়াচ লিস্ট: ব্রেকআউটের অপেক্ষায় (${t.score360}%) — সম্ভাব্য দিক ${t.directionPlan}`;
+        t.whyText = `বাজার এখন কনসোলিডেশনে আছে (${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%)। এখনই বড় পজিশন না নিয়ে কম মার্জিনে সতর্ক থাকা বা ব্রেকআউটের অপেক্ষা করা যুক্তিসঙ্গত।`;
       }
     }
 
-    function openDemoTrade(coin, side, amount = 500) {
-      if (state.dailyLoss >= 500) { alert("দৈনিক লস সীমা ($500) পূর্ণ হয়েছে!"); return; }
-      const t = state.ticks[coin];
-      if (!t || t.price <= 0 || state.positions.some(p => p.coin === coin) || amount > state.cash) return;
-      const entry = t.price, qty = amount / entry;
-      const sl = side === "BUY" ? entry * 0.985 : entry * 1.015;
-      const tp = side === "BUY" ? entry * 1.025 : entry * 0.975;
-      state.cash -= amount;
-      state.positions.push({ coin, side, entry, qty, amount, sl, tp });
-      renderPositionsAndSummary();
+    function selectCoin(coin) {
+      app.selectedCoin = coin;
+      document.getElementById("studyCoin").value = coin;
+      applyAutoPlanToInputs(true);
+      renderBoard(null);
     }
 
-    function closeDemoTrade(idx, reason = "Manual Close") {
-      const pos = state.positions[idx];
-      if (!pos) return;
-      const cp = state.ticks[pos.coin]?.price || pos.entry;
-      const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
-      state.cash += Math.max(0, pos.amount + pnl);
-      if (pnl < 0) state.dailyLoss += Math.abs(pnl);
-      state.history.unshift({ time: new Date().toLocaleTimeString(), coin: pos.coin, side: pos.side, entry: pos.entry, exit: cp, pnl, reason });
-      state.positions.splice(idx, 1);
-      renderPositionsAndSummary(); renderHistory();
+    function applyAutoPlanToInputs(overwriteValues = true) {
+      const t = app.coins[app.selectedCoin];
+      if (!t) return;
+      const badgeCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
+      document.getElementById("autoPlanCard").className = `box-item ${t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "")}`;
+      document.getElementById("autoPlanCard").innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;">
+          <span>${t.coin}/USD — Live: ${fmt(t.price)}</span>
+          <span class="badge ${badgeCls}">${t.signal} (${t.score360}%)</span>
+        </div>
+        <div style="color:var(--muted);font-size:0.76rem;margin-top:5px;line-height:1.4;">${t.whyText}</div>
+        <div class="auto-plan-grid">
+          <div class="plan-chip"><div class="k">লাভজনক দিক</div><div class="v">${t.directionPlan}</div></div>
+          <div class="plan-chip"><div class="k">Auto Low-Margin</div><div class="v">$${t.lowMarginAmt}</div></div>
+          <div class="plan-chip"><div class="k">Auto Stop-Loss</div><div class="v">${fmt(t.slPlan)}</div></div>
+          <div class="plan-chip"><div class="k">Auto Target</div><div class="v">${fmt(t.tpPlan)}</div></div>
+        </div>
+      `;
+
+      if (overwriteValues && t.price > 0) {
+        document.getElementById("mDir").value = t.directionPlan;
+        document.getElementById("mAmt").value = t.lowMarginAmt;
+        const dec = t.price >= 1 ? 4 : 6;
+        document.getElementById("mSl").value = Number(t.slPlan).toFixed(dec);
+        document.getElementById("mTp").value = Number(t.tpPlan).toFixed(dec);
+      }
     }
 
-    function toggleAuto() {
-      state.autoSignal = !state.autoSignal;
-      const btn = document.getElementById("autoBtn");
-      btn.textContent = `AUTO SIGNAL: ${state.autoSignal ? "ON" : "OFF"}`;
-      btn.className = state.autoSignal ? "btn btn-buy" : "btn btn-accent";
+    function createPosition(coin, side, amt, slVal, tpVal, origin) {
+      if (app.killSwitch || app.dailyLoss >= 500) {
+        app.killSwitch = true; app.autoBot = false; updateKillBadge();
+        return "Kill-Switch সক্রিয়: দৈনিক লস $500 ছুঁয়েছে!";
+      }
+      if (app.positions.some(p => p.coin === coin)) {
+        return `${coin}-এ ইতিমধ্যে একটি রানিং পজিশন আছে।`;
+      }
+      const t = app.coins[coin];
+      if (!t || t.price <= 0) return "লাইভ প্রাইস এখনো আসেনি।";
+      if (isNaN(amt) || amt < 10 || amt > app.cash) return "অবৈধ বা অপর্যাপ্ত ক্যাশ ব্যালেন্স।";
+
+      const entry = t.price;
+      const qty = amt / entry;
+      const defaultGap = Math.max(entry * 0.008, (t.high24 - t.low24) * 0.015 || entry * 0.008);
+      const sl = (slVal && slVal > 0) ? slVal : (side === "BUY" ? entry - defaultGap : entry + defaultGap);
+      const tp = (tpVal && tpVal > 0) ? tpVal : (side === "BUY" ? entry + defaultGap * 1.8 : entry - defaultGap * 1.8);
+
+      app.cash -= amt;
+      app.positions.push({
+        coin, side, entry, qty, amt, sl, tp, origin,
+        peakPrice: entry, troughPrice: entry
+      });
+      pushGuardNote(`${origin}: ${coin} ${side} @ ${fmt(entry)} | Margin $${amt} | Initial SL ${fmt(sl)} | Target ${fmt(tp)}`);
+      renderPositionsAndCards();
+      return `${coin} ${side} অর্ডার চালু হয়েছে (${origin})!`;
     }
 
-    function resetDemo() { state.cash = 10000; state.positions = []; state.history = []; state.dailyLoss = 0; renderPositionsAndSummary(); renderHistory(); }
-
-    function exportCSV() {
-      if (!state.history.length) return;
-      const rows = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(state.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`));
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" })); a.download = "fast_signals_journal.csv"; a.click();
+    function submitManualOrder() {
+      const coin = document.getElementById("studyCoin").value;
+      const side = document.getElementById("mDir").value;
+      const amt = parseFloat(document.getElementById("mAmt").value);
+      const sl = parseFloat(document.getElementById("mSl").value);
+      const tp = parseFloat(document.getElementById("mTp").value);
+      const msg = createPosition(coin, side, amt, sl, tp, "MANUAL+BOT");
+      document.getElementById("mMsg").textContent = msg;
     }
 
-    function renderMarketTable(changedCoin) {
-      const tbody = document.getElementById("marketBody");
-      if (!tbody.children.length) {
-        PAIRS.forEach(sym => {
-          const coin = sym.split("/")[0], tr = document.createElement("tr");
-          tr.innerHTML = `<td><strong>${coin}</strong><div style="font-size:0.7rem;color:var(--muted);">${sym}</div></td><td id="price-${coin}" class="price-cell">--</td><td id="chg-${coin}">--</td><td id="trend-${coin}">--</td><td id="score-${coin}">--</td><td id="sig-${coin}">--</td><td><div class="mini-actions"><button class="btn btn-buy" onclick="openDemoTrade('${coin}','BUY',500)">BUY</button><button class="btn btn-sell" onclick="openDemoTrade('${coin}','SELL',500)">SELL</button></div></td>`;
-          tbody.appendChild(tr);
+    function closePosition(idx, reason = "Manual Exit") {
+      const p = app.positions[idx];
+      if (!p) return;
+      const cp = app.coins[p.coin]?.price || p.entry;
+      const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
+      app.cash += Math.max(0, p.amt + pnl);
+      if (pnl < 0) {
+        app.dailyLoss += Math.abs(pnl);
+        if (app.dailyLoss >= 500) {
+          app.killSwitch = true; app.autoBot = false; updateKillBadge();
+          pushGuardNote("KILL-SWITCH TRIGGERED: দৈনিক লস $500 ছুঁয়েছে, সব অটো ট্রেড বন্ধ।");
+        }
+      }
+      app.history.unshift({
+        time: new Date().toLocaleTimeString(),
+        coin: p.coin, side: p.side, entry: p.entry, exit: cp, pnl, reason
+      });
+      app.positions.splice(idx, 1);
+      renderPositionsAndCards();
+      renderHistory();
+    }
+
+    function toggleAutoBot() {
+      if (app.killSwitch) return;
+      app.autoBot = !app.autoBot;
+      const btn = document.getElementById("autoToggleBtn");
+      btn.textContent = `AUTO ACTION: ${app.autoBot ? "ON" : "OFF"}`;
+      btn.className = app.autoBot ? "btn btn-buy" : "btn btn-accent";
+      pushGuardNote(app.autoBot
+        ? "AUTO ACTION ON: বট আপনার নিয়ম ও স্কোর (≥62%) অনুযায়ী নিজে থেকেই ট্রেড ও লস-লিমিট নিয়ন্ত্রণ করবে।"
+        : "AUTO ACTION OFF: অটো এন্ট্রি বন্ধ করা হয়েছে; রানিং পজিশনের সুরক্ষা সক্রিয় আছে।");
+      renderGuardLog();
+    }
+
+    function updateKillBadge() {
+      const b = document.getElementById("ksBadge");
+      if (app.killSwitch || app.dailyLoss >= 500) {
+        b.textContent = `Kill-Switch: STOP ($${app.dailyLoss.toFixed(0)}/$500)`;
+        b.className = "pill stop";
+      } else {
+        b.textContent = `Kill-Switch: Safe ($${app.dailyLoss.toFixed(0)}/$500)`;
+        b.className = "pill live";
+      }
+    }
+
+    function resetAccount() {
+      app.cash = 10000; app.positions = []; app.history = []; app.dailyLoss = 0; app.killSwitch = false; app.autoBot = false;
+      document.getElementById("autoToggleBtn").textContent = "AUTO ACTION: OFF";
+      document.getElementById("autoToggleBtn").className = "btn btn-accent";
+      updateKillBadge(); renderPositionsAndCards(); renderHistory();
+    }
+
+    function renderBoard(changedCoin) {
+      const tb = document.getElementById("mktBody");
+      if (!tb.children.length) {
+        SYMBOLS.forEach(pair => {
+          const c = pair.split("/")[0];
+          const tr = document.createElement("tr");
+          tr.id = `tr-${c}`;
+          tr.className = "selectable-row";
+          tr.onclick = () => selectCoin(c);
+          tr.innerHTML = `
+            <td><strong>${c}</strong></td>
+            <td id="p-${c}" class="price-cell">--</td>
+            <td id="c-${c}">--</td>
+            <td id="hl-${c}" style="font-size:0.74rem;color:var(--muted);">--</td>
+            <td id="sc-${c}">--</td>
+            <td id="sg-${c}">--</td>
+            <td onclick="event.stopPropagation();">
+              <div class="row-flex">
+                <button class="btn btn-buy" onclick="createPosition('${c}','BUY',300,0,0,'QUICK-LOW-MARGIN')">BUY</button>
+                <button class="btn btn-sell" onclick="createPosition('${c}','SELL',300,0,0,'QUICK-LOW-MARGIN')">SELL</button>
+              </div>
+            </td>
+          `;
+          tb.appendChild(tr);
         });
       }
-      PAIRS.forEach(sym => {
-        const coin = sym.split("/")[0], t = state.ticks[coin], pEl = document.getElementById(`price-${coin}`);
-        pEl.textContent = fmtPrice(t.price);
-        if (coin === changedCoin && t.prevPrice > 0 && t.price !== t.prevPrice) {
+
+      SYMBOLS.forEach(pair => {
+        const c = pair.split("/")[0], t = app.coins[c];
+        const row = document.getElementById(`tr-${c}`);
+        row.className = `selectable-row ${c === app.selectedCoin ? "active-coin" : ""}`;
+
+        const pEl = document.getElementById(`p-${c}`);
+        pEl.textContent = fmt(t.price);
+        if (c === changedCoin && t.prev > 0 && t.price !== t.prev) {
           pEl.classList.remove("flash-up", "flash-down"); void pEl.offsetWidth;
-          pEl.classList.add(t.price > t.prevPrice ? "flash-up" : "flash-down");
+          pEl.classList.add(t.price > t.prev ? "flash-up" : "flash-down");
         }
-        document.getElementById(`chg-${coin}`).innerHTML = `<span class="${t.chg24h >= 0 ? "pos-up" : "pos-down"}">${t.chg24h >= 0 ? "+" : ""}${t.chg24h.toFixed(2)}%</span>`;
-        document.getElementById(`trend-${coin}`).textContent = t.trendText;
-        document.getElementById(`score-${coin}`).innerHTML = `<strong>${t.score}%</strong>`;
-        const bClass = t.signal === "BUY" ? "sig-buy" : (t.signal === "SELL" ? "sig-sell" : "sig-hold");
-        document.getElementById(`sig-${coin}`).innerHTML = `<span class="sig-badge ${bClass}">${t.signal}</span>`;
+        document.getElementById(`c-${c}`).innerHTML = `<span class="${t.chg24 >= 0 ? "pos-up" : "pos-down"}">${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%</span>`;
+        document.getElementById(`hl-${c}`).textContent = `${fmt(t.high24)} / ${fmt(t.low24)}`;
+        document.getElementById(`sc-${c}`).innerHTML = `<strong>${t.score360}%</strong>`;
+        const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
+        document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${t.signal}</span>`;
       });
-      document.getElementById("intelFeed").innerHTML = Object.values(state.ticks).sort((a, b) => b.score - a.score).map(t => {
-        const cls = t.signal === "BUY" ? "buy-border" : (t.signal === "SELL" ? "sell-border" : "");
-        const bClass = t.signal === "BUY" ? "sig-buy" : (t.signal === "SELL" ? "sig-sell" : "sig-hold");
-        return `<div class="intel-item ${cls}"><div class="intel-head"><span>${t.coin}/USD — ${fmtPrice(t.price)}</span><span class="sig-badge ${bClass}">${t.signal} (${t.score}%)</span></div><div class="intel-meta">${t.reason}</div></div>`;
+
+      const sorted = Object.values(app.coins).sort((a, b) => b.score360 - a.score360);
+      document.getElementById("futureAlertBox").innerHTML = sorted.map(t => {
+        const cls = t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "");
+        return `
+          <div class="box-item ${cls}" style="cursor:pointer;" onclick="selectCoin('${t.coin}')">
+            <div style="display:flex;justify-content:space-between;font-weight:800;">
+              <span>${t.coin} — ${fmt(t.price)}</span>
+              <span>${t.score360}%</span>
+            </div>
+            <div style="font-size:0.77rem;margin-top:3px;">${t.futurePossibility}</div>
+            <div style="color:var(--muted);font-size:0.73rem;margin-top:2px;">প্ল্যান: ${t.directionPlan} | Margin $${t.lowMarginAmt} | SL ${fmt(t.slPlan)} | TP ${fmt(t.tpPlan)}</div>
+          </div>
+        `;
       }).join("");
+
+      applyAutoPlanToInputs(false);
     }
 
-    function renderPositionsAndSummary() {
-      let unrealized = 0, invested = 0;
-      for (let i = state.positions.length - 1; i >= 0; i--) {
-        const pos = state.positions[i], cp = state.ticks[pos.coin]?.price || pos.entry;
-        const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
-        if ((pos.side === "BUY" && (cp <= pos.sl || cp >= pos.tp)) || (pos.side === "SELL" && (cp >= pos.sl || cp <= pos.tp))) {
-          closeDemoTrade(i, "SL/TP Hit"); continue;
-        }
-        invested += pos.amount; unrealized += pnl;
-      }
-      document.getElementById("cashVal").textContent = fmtPrice(state.cash);
-      document.getElementById("invVal").textContent = fmtPrice(invested);
-      document.getElementById("posCount").textContent = `${state.positions.length} Open Positions`;
-      const pnlEl = document.getElementById("pnlVal");
-      pnlEl.textContent = `${unrealized >= 0 ? "+" : "-"}${fmtPrice(Math.abs(unrealized))}`;
-      pnlEl.className = `val ${unrealized >= 0 ? "pos-up" : "pos-down"}`;
-      document.getElementById("dailyLossSub").textContent = `Daily Loss Guard: $${state.dailyLoss.toFixed(0)} / $500`;
-      document.getElementById("eqVal").textContent = fmtPrice(state.cash + invested + unrealized);
-      const best = Object.values(state.ticks).filter(x => x.signal !== "HOLD").sort((a, b) => b.score - a.score)[0];
-      document.getElementById("topCall").textContent = best ? `Top Call: ${best.signal} ${best.coin} (${best.score}%)` : "Top Call: Scanning...";
+    function renderGuardLog() {
+      document.getElementById("guardLogBox").innerHTML = app.guardNotes.map(n =>
+        `<div class="box-item"><div style="font-size:0.76rem;line-height:1.4;color:var(--text);">${n}</div></div>`
+      ).join("");
+    }
 
-      const pBody = document.getElementById("posBody");
-      pBody.innerHTML = !state.positions.length ? `<tr><td colspan="6" style="color:var(--muted); text-align:center;">কোনো ওপেন পজিশন নেই</td></tr>` :
-        state.positions.map((pos, idx) => {
-          const cp = state.ticks[pos.coin]?.price || pos.entry;
-          const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
-          return `<tr><td><strong>${pos.coin}</strong></td><td><span class="sig-badge ${pos.side === "BUY" ? "sig-buy" : "sig-sell"}">${pos.side}</span></td><td>${fmtPrice(pos.entry)}</td><td style="font-size:0.75rem;color:var(--muted);">${fmtPrice(pos.sl)} / ${fmtPrice(pos.tp)}</td><td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmtPrice(Math.abs(pnl))}</td><td><button class="btn btn-ghost" onclick="closeDemoTrade(${idx})">Exit</button></td></tr>`;
-        }).join("");
+    function renderPositionsAndCards() {
+      let inv = 0, unrl = 0;
+
+      for (let i = app.positions.length - 1; i >= 0; i--) {
+        const p = app.positions[i];
+        const t = app.coins[p.coin];
+        const cp = t?.price || p.entry;
+
+        // Dynamic loss limit & profit protection while position is running
+        if (p.side === "BUY") {
+          if (cp > p.peakPrice) p.peakPrice = cp;
+          const gainPct = ((cp - p.entry) / p.entry) * 100;
+          // Lock profit & tighten loss limit as price moves up
+          if (gainPct >= 1.5) {
+            const lockedSl = p.entry * 1.006;
+            const trailSl = cp * 0.992;
+            const nextSl = Math.max(p.sl, lockedSl, trailSl);
+            if (nextSl > p.sl * 1.0005) {
+              p.sl = nextSl;
+              pushGuardNote(`Dynamic Guard (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL তুলে ${fmt(p.sl)}-এ লক করা হয়েছে।`);
+            }
+          } else if (t && t.signal === "SELL" && t.score360 >= 66 && gainPct < 0) {
+            // Tighten loss limit if momentum flips strongly against BUY
+            const tightSl = Math.max(p.sl, cp * 0.994);
+            if (tightSl > p.sl) {
+              p.sl = tightSl;
+              pushGuardNote(`Dynamic Guard (${p.coin} BUY): বিপরীত চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
+            }
+          }
+        } else {
+          if (cp < p.troughPrice) p.troughPrice = cp;
+          const gainPct = ((p.entry - cp) / p.entry) * 100;
+          if (gainPct >= 1.5) {
+            const lockedSl = p.entry * 0.994;
+            const trailSl = cp * 1.008;
+            const nextSl = Math.min(p.sl, lockedSl, trailSl);
+            if (nextSl < p.sl * 0.9995) {
+              p.sl = nextSl;
+              pushGuardNote(`Dynamic Guard (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL নামিয়ে ${fmt(p.sl)}-এ লক করা হয়েছে।`);
+            }
+          } else if (t && t.signal === "BUY" && t.score360 >= 66 && gainPct < 0) {
+            const tightSl = Math.min(p.sl, cp * 1.006);
+            if (tightSl < p.sl) {
+              p.sl = tightSl;
+              pushGuardNote(`Dynamic Guard (${p.coin} SELL): বিপরীত চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
+            }
+          }
+        }
+
+        const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
+        const hitTp = (p.side === "BUY" && cp >= p.tp) || (p.side === "SELL" && cp <= p.tp);
+        const hitSl = (p.side === "BUY" && cp <= p.sl) || (p.side === "SELL" && cp >= p.sl);
+
+        if (hitTp || hitSl) {
+          closePosition(i, hitTp ? "Target Hit" : "Dynamic/SL Hit");
+          continue;
+        }
+        inv += p.amt;
+        unrl += pnl;
+      }
+
+      document.getElementById("cCash").textContent = fmt(app.cash);
+      document.getElementById("cInv").textContent = fmt(inv);
+      document.getElementById("cPosSub").textContent = `${app.positions.length} Active Positions`;
+      const pEl = document.getElementById("cPnl");
+      pEl.textContent = `${unrl >= 0 ? "+" : "-"}${fmt(Math.abs(unrl))}`;
+      pEl.className = `kpi-val ${unrl >= 0 ? "pos-up" : "pos-down"}`;
+      document.getElementById("cLossSub").textContent = `Daily Loss Guard: $${app.dailyLoss.toFixed(2)} / $500.00`;
+      document.getElementById("cEq").textContent = fmt(app.cash + inv + unrl);
+      updateKillBadge();
+      renderGuardLog();
+
+      const pb = document.getElementById("posBody");
+      pb.innerHTML = !app.positions.length
+        ? `<tr><td colspan="7" style="text-align:center;color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr>`
+        : app.positions.map((p, i) => {
+            const cp = app.coins[p.coin]?.price || p.entry;
+            const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
+            return `
+              <tr>
+                <td><strong>${p.coin}</strong></td>
+                <td><span class="badge ${p.side === "BUY" ? "b-buy" : "b-sell"}">${p.side}</span> <span style="font-size:0.7rem;color:var(--muted);">(${p.origin})</span></td>
+                <td>${fmt(p.entry)}</td>
+                <td>${fmt(p.sl)}</td>
+                <td>${fmt(p.tp)}</td>
+                <td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmt(Math.abs(pnl))}</td>
+                <td><button class="btn btn-ghost" onclick="closePosition(${i})">Exit</button></td>
+              </tr>
+            `;
+          }).join("");
     }
 
     function renderHistory() {
-      const hBody = document.getElementById("histBody");
-      hBody.innerHTML = !state.history.length ? `<tr><td colspan="5" style="color:var(--muted); text-align:center;">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr>` :
-        state.history.slice(0, 15).map(h => `<tr><td>${h.time}</td><td><strong>${h.coin}</strong></td><td>${h.side}</td><td>${fmtPrice(h.entry)} → ${fmtPrice(h.exit)}</td><td class="${h.pnl >= 0 ? "pos-up" : "pos-down"}">${h.pnl >= 0 ? "+" : "-"}${fmtPrice(Math.abs(h.pnl))}</td></tr>`).join("");
+      const hb = document.getElementById("histBody");
+      hb.innerHTML = !app.history.length
+        ? `<tr><td colspan="6" style="text-align:center;color:var(--muted);">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr>`
+        : app.history.slice(0, 12).map(h => `
+            <tr>
+              <td>${h.time}</td>
+              <td><strong>${h.coin}</strong></td>
+              <td>${h.side}</td>
+              <td>${fmt(h.entry)} → ${fmt(h.exit)}</td>
+              <td class="${h.pnl >= 0 ? "pos-up" : "pos-down"}">${h.pnl >= 0 ? "+" : "-"}${fmt(Math.abs(h.pnl))}</td>
+              <td style="font-size:0.74rem;color:var(--muted);">${h.reason}</td>
+            </tr>
+          `).join("");
     }
 
-    function connectStream() {
-      const statusEl = document.getElementById("wsStatus");
+    function downloadJournalCSV() {
+      if (!app.history.length) return;
+      const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(
+        app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`)
+      );
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
+      a.download = "crypto_360_smart_journal.csv";
+      a.click();
+    }
+
+    function startWS() {
+      const badge = document.getElementById("wsBadge");
       const ws = new WebSocket("wss://ws.kraken.com/v2");
-      ws.onopen = () => { statusEl.textContent = "LIVE STREAM (Kraken WS)"; statusEl.className = "pill live"; ws.send(JSON.stringify({ method: "subscribe", params: { channel: "ticker", symbol: PAIRS } })); };
+
+      ws.onopen = () => {
+        badge.textContent = "LIVE WS (Kraken Real Price)";
+        badge.className = "pill live";
+        ws.send(JSON.stringify({ method: "subscribe", params: { channel: "ticker", symbol: SYMBOLS } }));
+      };
+
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
         if (msg.channel === "ticker" && Array.isArray(msg.data)) {
           const now = performance.now();
-          document.getElementById("tickRate").textContent = `Tick: ${Math.max(1, Math.round(now - state.lastTickTime))} ms`;
-          state.lastTickTime = now;
-          let lastUpdatedCoin = null;
+          document.getElementById("msBadge").textContent = `Tick: ${Math.max(1, Math.round(now - app.lastTick))} ms`;
+          app.lastTick = now;
+
+          let lastCoin = null;
           msg.data.forEach(item => {
-            const coin = (item.symbol || "").split("/")[0], t = state.ticks[coin];
+            const c = (item.symbol || "").split("/")[0];
+            const t = app.coins[c];
             if (!t) return;
-            const newPrice = Number(item.last || t.price);
-            if (newPrice > 0) { t.prevPrice = t.price; t.price = newPrice; t.historyPrices.push(newPrice); if (t.historyPrices.length > 60) t.historyPrices.shift(); lastUpdatedCoin = coin; }
-            if (item.change_pct !== undefined) t.chg24h = Number(item.change_pct);
-            if (item.high !== undefined) t.high24h = Number(item.high);
-            if (item.low !== undefined) t.low24h = Number(item.low);
-            computeSignal(t);
-            if (state.autoSignal && (t.signal === "BUY" || t.signal === "SELL") && t.score >= 70 && now - (state.lastAutoTime[coin] || 0) > 15000) {
-              state.lastAutoTime[coin] = now; openDemoTrade(coin, t.signal, 500);
+            const np = Number(item.last || t.price);
+            if (np > 0) {
+              t.prev = t.price;
+              t.price = np;
+              t.prices.push(np);
+              if (t.prices.length > 60) t.prices.shift();
+              lastCoin = c;
+            }
+            if (item.change_pct !== undefined) t.chg24 = Number(item.change_pct);
+            if (item.high !== undefined) t.high24 = Number(item.high);
+            if (item.low !== undefined) t.low24 = Number(item.low);
+            if (item.volume !== undefined) t.vol24 = Number(item.volume);
+
+            computeCoinIntelligence(t);
+
+            if (app.autoBot && !app.killSwitch && t.score360 >= 62 && (t.signal === "BUY" || t.signal === "SELL")) {
+              if (now - (app.lastAutoTime[c] || 0) > 15000 && app.positions.length < 3) {
+                app.lastAutoTime[c] = now;
+                createPosition(c, t.signal, t.lowMarginAmt, t.slPlan, t.tpPlan, "AUTO-BOT");
+              }
             }
           });
-          renderMarketTable(lastUpdatedCoin); renderPositionsAndSummary();
+
+          renderBoard(lastCoin);
+          renderPositionsAndCards();
         }
       };
-      ws.onclose = () => { statusEl.textContent = "Reconnecting..."; statusEl.className = "pill warn"; setTimeout(connectStream, 1500); };
+
+      ws.onclose = () => {
+        badge.textContent = "Reconnecting...";
+        badge.className = "pill warn";
+        setTimeout(startWS, 1500);
+      };
     }
-    renderMarketTable(null); renderPositionsAndSummary(); connectStream();
+
+    renderBoard(null);
+    renderPositionsAndCards();
+    renderHistory();
+    startWS();
   </script>
 </body>
 </html>
