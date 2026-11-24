@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultra-Fast 360° Signal & Live Ticker Terminal</title>
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0e1626;
+      --panel-2: #131f36;
+      --border: #1e2d4a;
+      --text: #eef4ff;
+      --muted: #8fa3c7;
+      --buy: #00e676;
+      --buy-bg: rgba(0, 230, 118, 0.14);
+      --sell: #ff3d57;
+      --sell-bg: rgba(255, 61, 87, 0.14);
+      --hold: #ffc107;
+      --hold-bg: rgba(255, 193, 7, 0.14);
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", system-ui, sans-serif; }
+    body { background: radial-gradient(circle at top right, #102040 0%, var(--bg) 55%); color: var(--text); min-height: 100vh; padding: 16px; }
+    .topbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; margin-bottom: 14px; }
+    .brand h1 { font-size: 1.15rem; color: #fff; }
+    .brand p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .status-group { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .pill { padding: 6px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; border: 1px solid var(--border); background: var(--panel-2); }
+    .pill.live { color: var(--buy); border-color: rgba(0,230,118,0.4); background: var(--buy-bg); }
+    .pill.warn { color: var(--hold); border-color: rgba(255,193,7,0.4); background: var(--hold-bg); }
+    .btn { border: none; border-radius: 10px; padding: 8px 14px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+    .btn:active { transform: scale(0.97); }
+    .btn-accent { background: linear-gradient(135deg, #0284c7, #38bdf8); color: #04101c; }
+    .btn-buy { background: var(--buy); color: #041c0f; }
+    .btn-sell { background: var(--sell); color: #fff; }
+    .btn-ghost { background: var(--panel-2); color: var(--text); border: 1px solid var(--border); }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 14px; }
+    .card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; }
+    .card .val { font-size: 1.35rem; font-weight: 800; margin-top: 6px; }
+    .card .sub { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
+    .main-layout { display: grid; grid-template-columns: 2.1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    @media (max-width: 980px) { .main-layout { grid-template-columns: 1fr; } }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th, td { padding: 11px 10px; text-align: left; border-bottom: 1px solid rgba(30,45,74,0.65); white-space: nowrap; }
+    th { color: var(--muted); font-size: 0.74rem; text-transform: uppercase; }
+    .price-cell { font-weight: 800; font-size: 0.95rem; border-radius: 6px; transition: background-color 0.25s ease, color 0.25s ease; }
+    .flash-up { background-color: rgba(0, 230, 118, 0.28) !important; color: var(--buy) !important; }
+    .flash-down { background-color: rgba(255, 61, 87, 0.28) !important; color: var(--sell) !important; }
+    .sig-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; font-weight: 800; font-size: 0.76rem; }
+    .sig-buy { color: var(--buy); background: var(--buy-bg); border: 1px solid rgba(0,230,118,0.4); }
+    .sig-sell { color: var(--sell); background: var(--sell-bg); border: 1px solid rgba(255,61,87,0.4); }
+    .sig-hold { color: var(--hold); background: var(--hold-bg); border: 1px solid rgba(255,193,7,0.4); }
+    .pos-up { color: var(--buy); font-weight: 700; }
+    .pos-down { color: var(--sell); font-weight: 700; }
+    .intel-list { display: flex; flex-direction: column; gap: 10px; max-height: 430px; overflow-y: auto; }
+    .intel-item { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; font-size: 0.82rem; }
+    .intel-item.buy-border { border-left-color: var(--buy); }
+    .intel-item.sell-border { border-left-color: var(--sell); }
+    .intel-head { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 4px; }
+    .intel-meta { color: var(--muted); font-size: 0.75rem; line-height: 1.4; }
+    .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .bottom-grid { grid-template-columns: 1fr; } }
+    .mini-actions { display: flex; gap: 6px; }
+    .note-foot { margin-top: 12px; font-size: 0.75rem; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <h1>⚡ Ultra-Fast 360° Signal &amp; Live Ticker Terminal</h1>
+      <p>চার্ট ছাড়া সরাসরি লাইভ প্রাইস, BUY/SELL সিগন্যাল ও ডেমো পজিশন ট্র্যাকার (Kraken WebSocket — No API Key)</p>
+    </div>
+    <div class="status-group">
+      <span id="wsStatus" class="pill warn">Connecting Stream...</span>
+      <span id="tickRate" class="pill">Update: -- ms</span>
+      <button id="autoBtn" class="btn btn-accent" onclick="toggleAuto()">AUTO SIGNAL: OFF</button>
+      <button class="btn btn-ghost" onclick="resetDemo()">Reset ($10,000)</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="card"><div class="label">Available Cash</div><div id="cashVal" class="val">$10,000.00</div><div class="sub">Demo Simulation Balance</div></div>
+    <div class="card"><div class="label">Active Margin / Invested</div><div id="invVal" class="val">$0.00</div><div id="posCount" class="sub">0 Open Positions</div></div>
+    <div class="card"><div class="label">Live Unrealized PnL</div><div id="pnlVal" class="val">$0.00</div><div id="dailyLossSub" class="sub">Daily Loss Guard: $0 / $500</div></div>
+    <div class="card"><div class="label">Total Equity</div><div id="eqVal" class="val">$10,000.00</div><div id="topCall" class="sub">Top Signal: Scanning...</div></div>
+  </div>
+
+  <div class="main-layout">
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size:1rem;">📊 লাইভ মার্কেট ও BUY / SELL সিগন্যাল বোর্ড</h2>
+        <span style="font-size:0.75rem; color:var(--muted);">দ্রুত অ্যাকশনের জন্য BUY বা SELL চাপুন</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Coin</th><th>Live Price</th><th>24h %</th><th>Trend &amp; Momentum</th><th>360° Score</th><th>Action Call</th><th>Quick Trade ($500)</th></tr></thead>
+          <tbody id="marketBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:10px;">🧠 রিয়েল-টাইম মার্কেট ইন্টেলিজেন্স ও কারণ</h2>
+      <div id="intelFeed" class="intel-list"></div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="card">
+      <h2 style="font-size:1rem; margin-bottom:10px;">📌 ওপেন ডেমো পজিশন (Auto SL / TP)</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Coin</th><th>Side</th><th>Entry</th><th>SL / TP</th><th>Live PnL</th><th>Close</th></tr></thead>
+          <tbody id="posBody"><tr><td colspan="6" style="color:var(--muted); text-align:center;">কোনো ওপেন পজিশন নেই</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2 style="font-size:1rem;">📒 ক্লোজড ট্রেড লগ</h2>
+        <button class="btn btn-ghost" onclick="exportCSV()">Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Coin</th><th>Side</th><th>Entry → Exit</th><th>PnL ($)</th></tr></thead>
+          <tbody id="histBody"><tr><td colspan="5" style="color:var(--muted); text-align:center;">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="note-foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — প্রদর্শিত BUY/SELL সিগন্যাল বাস্তব বাজারে লাভের গ্যারান্টি দেয় না।</div>
+
+  <script>
+    const PAIRS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
+    const state = { cash: 10000, positions: [], history: [], dailyLoss: 0, autoSignal: false, lastAutoTime: {}, lastTickTime: performance.now(), ticks: {} };
+
+    PAIRS.forEach(sym => {
+      const coin = sym.split("/")[0];
+      state.ticks[coin] = { coin, price: 0, prevPrice: 0, chg24h: 0, high24h: 0, low24h: 0, historyPrices: [], signal: "HOLD", score: 50, trendText: "Analyzing...", reason: "লাইভ ডেটা সংগ্রহ চলছে..." };
+    });
+
+    function fmtPrice(p) {
+      if (!p || p <= 0) return "--";
+      if (p >= 1000) return "$" + p.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      if (p >= 1) return "$" + p.toFixed(4);
+      return "$" + p.toFixed(6);
+    }
+
+    function computeSignal(t) {
+      const arr = t.historyPrices;
+      if (arr.length < 8) { t.signal = "HOLD"; t.score = 52; t.trendText = "Warming Up"; t.reason = "রিয়েল-টাইম প্রাইস স্যাম্পল সংগ্রহ হচ্ছে।"; return; }
+      const shortSlice = arr.slice(-5), longSlice = arr.slice(-20);
+      const shortAvg = shortSlice.reduce((a, b) => a + b, 0) / shortSlice.length;
+      const longAvg = longSlice.reduce((a, b) => a + b, 0) / longSlice.length;
+      const momentumPct = ((t.price - shortSlice[0]) / shortSlice[0]) * 100;
+      let score = 50 + (shortAvg > longAvg ? 14 : -14) + (momentumPct > 0.08 ? 15 : (momentumPct < -0.08 ? -15 : 0)) + (t.chg24h > 1.5 ? 8 : (t.chg24h < -1.5 ? -8 : 0));
+      const range24 = Math.max(t.high24h - t.low24h, 1e-8);
+      const posInRange = (t.price - t.low24h) / range24;
+
+      if (score >= 64 && posInRange < 0.92) {
+        t.signal = "BUY"; t.score = Math.min(91, score);
+        t.trendText = `Bullish (${momentumPct >= 0 ? "+" : ""}${momentumPct.toFixed(2)}%)`;
+        t.reason = `স্বল্পমেয়াদী গড় দীর্ঘমেয়াদী গড়ের ওপরে এবং মোমেন্টাম ইতিবাচক।`;
+      } else if (score <= 38 && posInRange > 0.08) {
+        t.signal = "SELL"; t.score = Math.min(91, 100 - score);
+        t.trendText = `Bearish (${momentumPct.toFixed(2)}%)`;
+        t.reason = `স্বল্পমেয়াদী চাপ নিম্নমুখী এবং মোমেন্টাম নেতিবাচক।`;
+      } else {
+        t.signal = "HOLD"; t.score = Math.max(45, Math.min(62, score));
+        t.trendText = `Sideways (${momentumPct >= 0 ? "+" : ""}${momentumPct.toFixed(2)}%)`;
+        t.reason = "স্পষ্ট ব্রেকআউট নিশ্চিত নয় — অপেক্ষা করা নিরাপদ।";
+      }
+    }
+
+    function openDemoTrade(coin, side, amount = 500) {
+      if (state.dailyLoss >= 500) { alert("দৈনিক লস সীমা ($500) পূর্ণ হয়েছে!"); return; }
+      const t = state.ticks[coin];
+      if (!t || t.price <= 0 || state.positions.some(p => p.coin === coin) || amount > state.cash) return;
+      const entry = t.price, qty = amount / entry;
+      const sl = side === "BUY" ? entry * 0.985 : entry * 1.015;
+      const tp = side === "BUY" ? entry * 1.025 : entry * 0.975;
+      state.cash -= amount;
+      state.positions.push({ coin, side, entry, qty, amount, sl, tp });
+      renderPositionsAndSummary();
+    }
+
+    function closeDemoTrade(idx, reason = "Manual Close") {
+      const pos = state.positions[idx];
+      if (!pos) return;
+      const cp = state.ticks[pos.coin]?.price || pos.entry;
+      const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
+      state.cash += Math.max(0, pos.amount + pnl);
+      if (pnl < 0) state.dailyLoss += Math.abs(pnl);
+      state.history.unshift({ time: new Date().toLocaleTimeString(), coin: pos.coin, side: pos.side, entry: pos.entry, exit: cp, pnl, reason });
+      state.positions.splice(idx, 1);
+      renderPositionsAndSummary(); renderHistory();
+    }
+
+    function toggleAuto() {
+      state.autoSignal = !state.autoSignal;
+      const btn = document.getElementById("autoBtn");
+      btn.textContent = `AUTO SIGNAL: ${state.autoSignal ? "ON" : "OFF"}`;
+      btn.className = state.autoSignal ? "btn btn-buy" : "btn btn-accent";
+    }
+
+    function resetDemo() { state.cash = 10000; state.positions = []; state.history = []; state.dailyLoss = 0; renderPositionsAndSummary(); renderHistory(); }
+
+    function exportCSV() {
+      if (!state.history.length) return;
+      const rows = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(state.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`));
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([rows.join("\n")], { type: "text/csv" })); a.download = "fast_signals_journal.csv"; a.click();
+    }
+
+    function renderMarketTable(changedCoin) {
+      const tbody = document.getElementById("marketBody");
+      if (!tbody.children.length) {
+        PAIRS.forEach(sym => {
+          const coin = sym.split("/")[0], tr = document.createElement("tr");
+          tr.innerHTML = `<td><strong>${coin}</strong><div style="font-size:0.7rem;color:var(--muted);">${sym}</div></td><td id="price-${coin}" class="price-cell">--</td><td id="chg-${coin}">--</td><td id="trend-${coin}">--</td><td id="score-${coin}">--</td><td id="sig-${coin}">--</td><td><div class="mini-actions"><button class="btn btn-buy" onclick="openDemoTrade('${coin}','BUY',500)">BUY</button><button class="btn btn-sell" onclick="openDemoTrade('${coin}','SELL',500)">SELL</button></div></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      PAIRS.forEach(sym => {
+        const coin = sym.split("/")[0], t = state.ticks[coin], pEl = document.getElementById(`price-${coin}`);
+        pEl.textContent = fmtPrice(t.price);
+        if (coin === changedCoin && t.prevPrice > 0 && t.price !== t.prevPrice) {
+          pEl.classList.remove("flash-up", "flash-down"); void pEl.offsetWidth;
+          pEl.classList.add(t.price > t.prevPrice ? "flash-up" : "flash-down");
+        }
+        document.getElementById(`chg-${coin}`).innerHTML = `<span class="${t.chg24h >= 0 ? "pos-up" : "pos-down"}">${t.chg24h >= 0 ? "+" : ""}${t.chg24h.toFixed(2)}%</span>`;
+        document.getElementById(`trend-${coin}`).textContent = t.trendText;
+        document.getElementById(`score-${coin}`).innerHTML = `<strong>${t.score}%</strong>`;
+        const bClass = t.signal === "BUY" ? "sig-buy" : (t.signal === "SELL" ? "sig-sell" : "sig-hold");
+        document.getElementById(`sig-${coin}`).innerHTML = `<span class="sig-badge ${bClass}">${t.signal}</span>`;
+      });
+      document.getElementById("intelFeed").innerHTML = Object.values(state.ticks).sort((a, b) => b.score - a.score).map(t => {
+        const cls = t.signal === "BUY" ? "buy-border" : (t.signal === "SELL" ? "sell-border" : "");
+        const bClass = t.signal === "BUY" ? "sig-buy" : (t.signal === "SELL" ? "sig-sell" : "sig-hold");
+        return `<div class="intel-item ${cls}"><div class="intel-head"><span>${t.coin}/USD — ${fmtPrice(t.price)}</span><span class="sig-badge ${bClass}">${t.signal} (${t.score}%)</span></div><div class="intel-meta">${t.reason}</div></div>`;
+      }).join("");
+    }
+
+    function renderPositionsAndSummary() {
+      let unrealized = 0, invested = 0;
+      for (let i = state.positions.length - 1; i >= 0; i--) {
+        const pos = state.positions[i], cp = state.ticks[pos.coin]?.price || pos.entry;
+        const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
+        if ((pos.side === "BUY" && (cp <= pos.sl || cp >= pos.tp)) || (pos.side === "SELL" && (cp >= pos.sl || cp <= pos.tp))) {
+          closeDemoTrade(i, "SL/TP Hit"); continue;
+        }
+        invested += pos.amount; unrealized += pnl;
+      }
+      document.getElementById("cashVal").textContent = fmtPrice(state.cash);
+      document.getElementById("invVal").textContent = fmtPrice(invested);
+      document.getElementById("posCount").textContent = `${state.positions.length} Open Positions`;
+      const pnlEl = document.getElementById("pnlVal");
+      pnlEl.textContent = `${unrealized >= 0 ? "+" : "-"}${fmtPrice(Math.abs(unrealized))}`;
+      pnlEl.className = `val ${unrealized >= 0 ? "pos-up" : "pos-down"}`;
+      document.getElementById("dailyLossSub").textContent = `Daily Loss Guard: $${state.dailyLoss.toFixed(0)} / $500`;
+      document.getElementById("eqVal").textContent = fmtPrice(state.cash + invested + unrealized);
+      const best = Object.values(state.ticks).filter(x => x.signal !== "HOLD").sort((a, b) => b.score - a.score)[0];
+      document.getElementById("topCall").textContent = best ? `Top Call: ${best.signal} ${best.coin} (${best.score}%)` : "Top Call: Scanning...";
+
+      const pBody = document.getElementById("posBody");
+      pBody.innerHTML = !state.positions.length ? `<tr><td colspan="6" style="color:var(--muted); text-align:center;">কোনো ওপেন পজিশন নেই</td></tr>` :
+        state.positions.map((pos, idx) => {
+          const cp = state.ticks[pos.coin]?.price || pos.entry;
+          const pnl = pos.side === "BUY" ? (cp - pos.entry) * pos.qty : (pos.entry - cp) * pos.qty;
+          return `<tr><td><strong>${pos.coin}</strong></td><td><span class="sig-badge ${pos.side === "BUY" ? "sig-buy" : "sig-sell"}">${pos.side}</span></td><td>${fmtPrice(pos.entry)}</td><td style="font-size:0.75rem;color:var(--muted);">${fmtPrice(pos.sl)} / ${fmtPrice(pos.tp)}</td><td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmtPrice(Math.abs(pnl))}</td><td><button class="btn btn-ghost" onclick="closeDemoTrade(${idx})">Exit</button></td></tr>`;
+        }).join("");
+    }
+
+    function renderHistory() {
+      const hBody = document.getElementById("histBody");
+      hBody.innerHTML = !state.history.length ? `<tr><td colspan="5" style="color:var(--muted); text-align:center;">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr>` :
+        state.history.slice(0, 15).map(h => `<tr><td>${h.time}</td><td><strong>${h.coin}</strong></td><td>${h.side}</td><td>${fmtPrice(h.entry)} → ${fmtPrice(h.exit)}</td><td class="${h.pnl >= 0 ? "pos-up" : "pos-down"}">${h.pnl >= 0 ? "+" : "-"}${fmtPrice(Math.abs(h.pnl))}</td></tr>`).join("");
+    }
+
+    function connectStream() {
+      const statusEl = document.getElementById("wsStatus");
+      const ws = new WebSocket("wss://ws.kraken.com/v2");
+      ws.onopen = () => { statusEl.textContent = "LIVE STREAM (Kraken WS)"; statusEl.className = "pill live"; ws.send(JSON.stringify({ method: "subscribe", params: { channel: "ticker", symbol: PAIRS } })); };
+      ws.onmessage = (ev) => {
+        const msg = JSON.parse(ev.data);
+        if (msg.channel === "ticker" && Array.isArray(msg.data)) {
+          const now = performance.now();
+          document.getElementById("tickRate").textContent = `Tick: ${Math.max(1, Math.round(now - state.lastTickTime))} ms`;
+          state.lastTickTime = now;
+          let lastUpdatedCoin = null;
+          msg.data.forEach(item => {
+            const coin = (item.symbol || "").split("/")[0], t = state.ticks[coin];
+            if (!t) return;
+            const newPrice = Number(item.last || t.price);
+            if (newPrice > 0) { t.prevPrice = t.price; t.price = newPrice; t.historyPrices.push(newPrice); if (t.historyPrices.length > 60) t.historyPrices.shift(); lastUpdatedCoin = coin; }
+            if (item.change_pct !== undefined) t.chg24h = Number(item.change_pct);
+            if (item.high !== undefined) t.high24h = Number(item.high);
+            if (item.low !== undefined) t.low24h = Number(item.low);
+            computeSignal(t);
+            if (state.autoSignal && (t.signal === "BUY" || t.signal === "SELL") && t.score >= 70 && now - (state.lastAutoTime[coin] || 0) > 15000) {
+              state.lastAutoTime[coin] = now; openDemoTrade(coin, t.signal, 500);
+            }
+          });
+          renderMarketTable(lastUpdatedCoin); renderPositionsAndSummary();
+        }
+      };
+      ws.onclose = () => { statusEl.textContent = "Reconnecting..."; statusEl.className = "pill warn"; setTimeout(connectStream, 1500); };
+    }
+    renderMarketTable(null); renderPositionsAndSummary(); connectStream();
+  </script>
+</body>
+</html>
