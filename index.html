@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° AI Crypto Demo Terminal — Locked Day-Trade Advisor</title>
+  <title>360° AI Crypto Demo Terminal — Structure &amp; Day-Trade Advisor</title>
   <style>
     :root {
       --bg: #060a12;
@@ -56,6 +56,7 @@
     .outlook-box.buy { border-left-color: var(--buy); }
     .outlook-box.sell { border-left-color: var(--sell); }
     .daytrade-box { margin-top: 8px; padding: 10px 12px; border-radius: 8px; background: rgba(56,189,248,0.09); border: 1px solid rgba(56,189,248,0.28); font-size: 0.8rem; line-height: 1.5; }
+    .alert-strip { margin-top: 8px; padding: 8px 11px; border-radius: 8px; background: rgba(255,193,7,0.12); border: 1px solid rgba(255,193,7,0.35); color: #ffe082; font-size: 0.78rem; }
 
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
@@ -98,8 +99,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ 360° AI Crypto Demo Terminal — Locked Day-Trade Advisor</h1>
-      <p>ডে-ট্রেড পরামর্শ ১ সেকেন্ডে টিক দেখে বদলায় না—৬০ সেকেন্ডের জন্য লক থাকে (BUY / SELL / WAIT — No Trade)</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Structure &amp; Day-Trade Advisor</h1>
+      <p>ট্রেন্ড, সুইং হাই/লো, নেকলাইন, ডাবল বটম/হেড-অ্যান্ড-শোল্ডার, ক্যান্ডেল, ভলিউম, RSI ও নিউজ মিলিয়ে ডে-ট্রেড সিদ্ধান্ত</p>
     </div>
     <div class="row-flex">
       <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
@@ -118,10 +119,10 @@
     <div class="card"><div class="kpi-label">Current Balance (Equity)</div><div id="cEq" class="kpi-val">$10,000.00</div><div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div></div>
   </div>
 
-  <!-- 2. Search & Locked Day-Trade Advisor (60s Lock so it does NOT flip every 1s) -->
+  <!-- 2. Search & Structure-Aware Day-Trade Advisor -->
   <div class="card" style="margin-bottom:12px;">
     <div class="row-flex" style="justify-content:space-between;">
-      <h2 style="font-size:1rem;">🔎 ডে-ট্রেড ভবিষ্যৎ পরামর্শ (60s Locked Decision — News + Candle + Volume + RSI + Liq./Limit Buy)</h2>
+      <h2 style="font-size:1rem;">🔎 চার্ট স্ট্রাকচার, নেকলাইন ও ডে-ট্রেড সিদ্ধান্ত (Trend + Neckline + Bottom/Top + Candle + Volume + RSI + News)</h2>
       <div class="row-flex">
         <button class="btn btn-ghost" onclick="quickSearch('BTC')">BTC</button>
         <button class="btn btn-ghost" onclick="quickSearch('ETH')">ETH</button>
@@ -129,7 +130,7 @@
         <button class="btn btn-ghost" onclick="quickSearch('XRP')">XRP</button>
         <button class="btn btn-ghost" onclick="quickSearch('DOGE')">DOGE</button>
         <button class="btn btn-ghost" onclick="quickSearch('ADA')">ADA</button>
-        <button class="btn btn-accent" onclick="forceRecalculateDayTrade()">🔄 New 60s Study</button>
+        <button class="btn btn-accent" onclick="forceRecalculateDayTrade()">🔄 Refresh Structure Study</button>
       </div>
     </div>
 
@@ -166,7 +167,7 @@
     </div>
 
     <div class="card">
-      <h2 style="font-size:0.98rem; margin-bottom:8px;">🛡️ Dynamic Guard লাইভ অ্যাক্টিভিটি ও লগ</h2>
+      <h2 style="font-size:0.98rem; margin-bottom:8px;">🛡️ Dynamic Guard ও বট অ্যালার্ট লগ</h2>
       <div id="guardLogBox" class="box-list"></div>
     </div>
   </div>
@@ -240,11 +241,11 @@
     </div>
   </div>
 
-  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — ডে-ট্রেড পরামর্শ বা % রেঞ্জ বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — চার্ট প্যাটার্ন ও ডে-ট্রেড পরামর্শ বাস্তব বাজারে ১০০% লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
     const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
-    const LOCK_MS = 60000; // 60 seconds lock so recommendation never flickers every 1 second
+    const HOLD_WINDOW_MS = 12000;
 
     const app = {
       cash: 10000,
@@ -260,11 +261,11 @@
       lastAutoTime: {},
       lastTick: performance.now(),
       newsContext: {
-        prevNews: "নভেম্বরের সাম্প্রতিক পর্বে স্পট ETF আউটফ্লো, মূল্যস্ফীতি/সুদের হারের চাপ ও বড় লিকুইডেশন পর্বে বাজারে সতর্কতা তৈরি হয়েছিল।",
-        liveNews: "বর্তমান বাজারে ঝুঁকি এড়ানোর প্রবণতা (Risk-Off) ও ভলিউম বাছাইয়ের চাপ সক্রিয়; ব্রেকআউটের চেয়ে সাপোর্ট/লিমিট জোনে সতর্কতা বেশি জরুরি।"
+        prevNews: "সাম্প্রতিক পর্বে স্পট ETF থেকে বড় আউটফ্লো, সুদের হার/ম্যাক্রো সতর্কতা ও লিকুইডেশন চাপ বাজারের ওপর প্রভাব ফেলেছে।",
+        liveNews: "বর্তমান বাজারে ঝুঁকি এড়ানোর প্রবণতা (Risk-Off) থাকায় ব্রেকআউট ও বটম রিভার্সালে ভলিউম ও নেকলাইন নিশ্চিত হওয়া জরুরি।"
       },
-      lockedDayTrade: {}, // { [coin]: { decision, label, pctRange, refPrice, limitBuy, sellLiqZone, rsi, volText, candleText, advice, lockedUntil, computedAt } }
-      guardNotes: ["Dynamic Guard চালু আছে: রানিং ট্রেডের প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
+      botPlans: {},
+      guardNotes: ["Dynamic Guard ও Structure Bot চালু আছে: ট্রেন্ড, নেকলাইন, বটম/টপ ও ভলিউম যাচাই করে সিদ্ধান্ত দেয়।"],
       coins: {}
     };
 
@@ -300,6 +301,67 @@
       return Math.round(Math.max(8, Math.min(92, 100 - (100 / (1 + (gains / losses))))));
     }
 
+    // Detects local swing highs/lows, neckline, and classic top/bottom structures from recent price points
+    function analyzeChartStructure(t) {
+      const p = t.prices;
+      if (!p || p.length < 6 || t.price <= 0) {
+        return {
+          trend: "Data Gathering",
+          pattern: "Building Swings",
+          neckline: t.price || 0,
+          bottomZone: t.low24 || 0,
+          topZone: t.high24 || 0,
+          structureBias: "NEUTRAL",
+          summary: "চার্টের সুইং ও নেকলাইন আঁকার জন্য যথেষ্ট লাইভ পয়েন্ট সংগ্রহ হচ্ছে।"
+        };
+      }
+
+      const highs = [], lows = [];
+      for (let i = 1; i < p.length - 1; i++) {
+        if (p[i] >= p[i - 1] && p[i] >= p[i + 1]) highs.push({ idx: i, val: p[i] });
+        if (p[i] <= p[i - 1] && p[i] <= p[i + 1]) lows.push({ idx: i, val: p[i] });
+      }
+
+      const lastHigh = highs.length ? highs[highs.length - 1].val : Math.max(...p);
+      const prevHigh = highs.length >= 2 ? highs[highs.length - 2].val : lastHigh;
+      const lastLow = lows.length ? lows[lows.length - 1].val : Math.min(...p);
+      const prevLow = lows.length >= 2 ? lows[lows.length - 2].val : lastLow;
+
+      const neckline = highs.length >= 2 ? (prevHigh + lastHigh) / 2 : (lastHigh + lastLow) / 2;
+      const bottomZone = Math.min(lastLow, prevLow);
+      const topZone = Math.max(lastHigh, prevHigh);
+
+      const firstHalfAvg = p.slice(0, Math.floor(p.length / 2)).reduce((a, b) => a + b, 0) / Math.floor(p.length / 2);
+      const secondHalfAvg = p.slice(Math.floor(p.length / 2)).reduce((a, b) => a + b, 0) / Math.max(1, p.length - Math.floor(p.length / 2));
+      const trend = secondHalfAvg > firstHalfAvg * 1.0015 ? "Uptrend" : (secondHalfAvg < firstHalfAvg * 0.9985 ? "Downtrend" : "Sideways / Range");
+
+      let pattern = "Range / Swing Structure";
+      let structureBias = "NEUTRAL";
+
+      const lowDiffPct = prevLow > 0 ? Math.abs(lastLow - prevLow) / prevLow : 1;
+      const highDiffPct = prevHigh > 0 ? Math.abs(lastHigh - prevHigh) / prevHigh : 1;
+
+      if (lowDiffPct <= 0.006 && t.price > lastLow && t.price >= neckline * 0.998) {
+        pattern = "Double Bottom + Neckline Test";
+        structureBias = "BULLISH";
+      } else if (lowDiffPct <= 0.006 && t.price <= lastLow * 1.003) {
+        pattern = "Double Bottom / Support Floor";
+        structureBias = "BULLISH";
+      } else if (highDiffPct <= 0.006 && t.price < lastHigh && t.price <= neckline * 1.002) {
+        pattern = "Double Top / Neckline Rejection";
+        structureBias = "BEARISH";
+      } else if (trend === "Downtrend" && lastHigh < prevHigh && t.price < neckline) {
+        pattern = "Lower Highs Below Neckline (Bearish)";
+        structureBias = "BEARISH";
+      } else if (trend === "Uptrend" && lastLow > prevLow && t.price > neckline) {
+        pattern = "Higher Lows Above Neckline (Bullish)";
+        structureBias = "BULLISH";
+      }
+
+      const summary = `ট্রেন্ড: ${trend} | প্যাটার্ন: ${pattern} | Neckline: ${fmt(neckline)} | Bottom: ${fmt(bottomZone)} | Top: ${fmt(topZone)}`;
+      return { trend, pattern, neckline, bottomZone, topZone, structureBias, summary };
+    }
+
     function pushGuardNote(txt) {
       const stamp = new Date().toLocaleTimeString();
       app.guardNotes.unshift(`[${stamp}] ${txt}`);
@@ -322,6 +384,7 @@
       const prev2P = s[s.length - 3] || prevP;
 
       t.rsi14 = calcRSI(s, 14);
+      const st = analyzeChartStructure(t);
       const range24 = Math.max(t.high24 - t.low24, t.price * 0.015);
       const volEst = Math.max(t.price * 0.006, range24 * 0.014);
 
@@ -331,137 +394,148 @@
       else if (t.price < prevP && prevP > prev2P) t.candleBias = "Upper-Wick / Rejection Pressure";
       else t.candleBias = "Balanced / Range Candle";
 
-      let bull = 45, bear = 51;
-      if (fast > slow) bull += 14; else bear += 14;
-      if (momPct > 0.04) bull += 10; else if (momPct < -0.04) bear += 10;
-      if (t.chg24 > 1.2) bull += 6; else if (t.chg24 < -1.2) bear += 7;
-      if (t.rsi14 <= 30) bull += 10; else if (t.rsi14 >= 70) bear += 10;
+      let bull = 45, bear = 50;
+      if (fast > slow) bull += 12; else bear += 12;
+      if (st.structureBias === "BULLISH") bull += 14;
+      if (st.structureBias === "BEARISH") bear += 14;
+      if (momPct > 0.04) bull += 8; else if (momPct < -0.04) bear += 8;
+      if (t.rsi14 <= 30) bull += 9; else if (t.rsi14 >= 70) bear += 9;
 
       t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
 
-      if (bull >= bear && bull >= 60) {
+      if (bull >= bear && bull >= 62) {
         t.signal = "BUY"; t.directionPlan = "BUY"; t.score360 = Math.min(90, bull);
-        t.slPlan = Math.max(0.000001, t.price - volEst);
-        t.tpPlan = t.price + volEst * 1.8;
-        t.whyText = `BUY সেটআপ (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%।`;
-      } else if (bear > bull && bear >= 60) {
+        t.slPlan = Math.max(0.000001, Math.min(st.bottomZone || (t.price - volEst), t.price - volEst * 0.8));
+        t.tpPlan = Math.max(t.price + volEst * 1.6, st.neckline > t.price ? st.neckline : t.price + volEst * 1.8);
+        t.whyText = `BUY (${t.score360}%): ${st.pattern}, RSI ${t.rsi14}।`;
+      } else if (bear > bull && bear >= 62) {
         t.signal = "SELL"; t.directionPlan = "SELL"; t.score360 = Math.min(90, bear);
-        t.slPlan = t.price + volEst;
-        t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
-        t.whyText = `SELL সেটআপ (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct.toFixed(2)}%।`;
+        t.slPlan = Math.max(t.price + volEst * 0.8, st.topZone > t.price ? st.topZone : t.price + volEst);
+        t.tpPlan = Math.max(0.000001, Math.min(st.bottomZone || (t.price - volEst * 1.6), t.price - volEst * 1.5));
+        t.whyText = `SELL (${t.score360}%): ${st.pattern}, RSI ${t.rsi14}।`;
       } else {
-        t.signal = "HOLD"; t.directionPlan = fast >= slow ? "BUY" : "SELL";
-        t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
+        t.signal = "HOLD"; t.directionPlan = st.structureBias === "BEARISH" ? "SELL" : "BUY";
+        t.score360 = Math.max(46, Math.min(60, Math.max(bull, bear)));
         t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
         t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
-        t.whyText = `WAIT/RANGE (${t.score360}%): RSI ${t.rsi14}, ${t.candleBias}।`;
+        t.whyText = `WAIT (${t.score360}%): ${st.pattern}, RSI ${t.rsi14}।`;
       }
     }
 
-    // Computes a clear, decisive Day-Trade plan and locks it for 60s so it never flips every 1s
-    function createLockedDayTradePlan(coin) {
+    // Combines trend, swing structure, neckline, double bottom/top, candle, volume, RSI & news into a clear decision
+    function createBotDayTradePlan(coin, brokenAlert = "") {
       const t = app.coins[coin];
       const now = Date.now();
       if (!t || t.price <= 0) {
         return {
           coin, decision: "WAIT", label: "WAIT — লাইভ ডেটার অপেক্ষায়",
           pctRange: "-1.5% থেকে +2.0%", refPrice: 0, limitBuy: 0, sellLiqZone: 0,
+          neckline: 0, pattern: "Loading...", trend: "Loading...",
           rsi: 50, volText: "লোডিং...", candleText: "লোডিং...",
-          advice: "লাইভ মার্কেট প্রাইস আসার পর ডে-ট্রেড দিক হিসাব হবে।",
-          lockedUntil: now + 5000, computedAt: new Date().toLocaleTimeString()
+          advice: "লাইভ ডেটা আসার পর চার্ট স্ট্রাকচার ও ডে-ট্রেড সিদ্ধান্ত তৈরি হবে।",
+          alertNote: brokenAlert, validUntil: now + 5000, computedAt: new Date().toLocaleTimeString()
         };
       }
 
+      const st = analyzeChartStructure(t);
       const range24 = Math.max(t.high24 - t.low24, t.price * 0.018);
-      const posInRange = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
-      const limitBuy = Math.max(0.000001, t.low24 + range24 * 0.22);
-      const sellLiqZone = t.high24 > t.price ? Math.max(t.high24, t.price * 1.015) : t.price * 1.018;
+      const limitBuy = Math.max(0.000001, Math.min(t.price * 0.992, st.bottomZone > 0 && st.bottomZone < t.price ? st.bottomZone : t.low24 + range24 * 0.18));
+      const sellLiqZone = Math.max(t.price * 1.015, st.topZone > t.price ? st.topZone : (t.high24 > t.price ? t.high24 : t.price * 1.018));
 
       const lowPct = (-Math.max(1.8, Math.min(4.8, (range24 / t.price) * 45))).toFixed(1);
       const highPct = (+Math.max(1.5, Math.min(5.5, (range24 / t.price) * 50))).toFixed(1);
 
       let decision = "WAIT";
-      let label = "WAIT — পরিষ্কার সেটআপের অপেক্ষা";
+      let label = "WAIT — নেকলাইন ও ভলিউম কনফার্মেশনের অপেক্ষা";
       let advice = "";
 
-      if (t.rsi14 <= 32 && posInRange <= 0.42) {
+      if (st.structureBias === "BULLISH" && t.rsi14 <= 48 && t.price >= st.bottomZone * 0.998) {
         decision = "BUY";
-        label = "BUY — নিচের সাপোর্ট / Limit Buy জোন অনুকূলে";
-        advice = `দাম 24h রেঞ্জের নিচের অংশে (${(posInRange * 100).toFixed(0)}%) ও RSI ${t.rsi14} নিচের দিকে থাকায় আজকের ডে-ট্রেডে **BUY** দিক অগ্রাধিকার পাচ্ছে। ${fmt(limitBuy)} এর কাছাকাছি **Limit Buy** বা কম মার্জিনে BUY দেখুন; ${fmt(sellLiqZone)} এর কাছে সেল অর্ডার ও লিকুইডেশন চাপ থাকতে পারে।`;
-      } else if (t.rsi14 >= 68 || posInRange >= 0.78 || (t.signal === "SELL" && t.score360 >= 62)) {
+        label = `BUY — ${st.pattern} সাপোর্ট/নেকলাইন অনুকূলে`;
+        advice = `চার্টে **${st.pattern}** (ট্রেন্ড: ${st.trend}) এবং **RSI ${t.rsi14}** মিলে নিচের সাপোর্ট থেকে উপরের দিকে যাওয়ার সম্ভাবনা দেখাচ্ছে। **${fmt(limitBuy)}** এর কাছে Limit Buy বা সতর্ক BUY বিবেচনা করতে পারেন; ওপরে **${fmt(st.neckline)}** নেকলাইন এবং **${fmt(sellLiqZone)}** সেল/লিকুইডেশন জোন খেয়াল রাখুন।`;
+      } else if (st.structureBias === "BEARISH" || (t.signal === "SELL" && t.score360 >= 62)) {
         decision = "SELL";
-        label = "SELL — ওপরের সেল/লিকুইডেশন চাপ ও নিম্নমুখী ঝুঁকি";
-        advice = `সাম্প্রতিক নিউজের সতর্কতা, ${t.candleBias} ও RSI (${t.rsi14}) মিলিয়ে আজকের ডে-ট্রেডে **SELL** দিক বেশি যুক্তিসঙ্গত। নতুন BUY না করে SELL সেটআপ বা নিচে ${fmt(limitBuy)} পর্যন্ত নামলে **Limit Buy** এর অপেক্ষা করুন; ওপরে ${fmt(sellLiqZone)} সেল/লিকুইডেশন জোন হিসেবে কাজ করতে পারে।`;
+        label = `SELL — ${st.pattern} ও নিম্নমুখী চাপ`;
+        advice = `ট্রেন্ড (${st.trend}), ক্যান্ডেল/ভলিউম চাপ ও সাম্প্রতিক নিউজের সতর্কতায় **SELL** দিক বেশি যুক্তিসঙ্গত। **${fmt(st.neckline)}** নেকলাইন/রেজিস্ট্যান্সের নিচে দুর্বলতা থাকলে SELL দিক দেখুন এবং তাড়াহুড়ো না করে **${fmt(limitBuy)}** নিচের বটম/Limit Buy জোনের প্রতিক্রিয়া যাচাই করুন।`;
       } else {
         decision = "WAIT";
-        label = "WAIT — এখনই BUY বা SELL নয় (Range / Trap Zone)";
-        advice = `RSI (${t.rsi14}), ভলিউম ও রানিং ক্যান্ডেল (${t.candleBias}) এখন মাঝামাঝি/রেঞ্জিং অবস্থায় আছে। ১ সেকেন্ডের টিকে না দৌড়ে নিচে ${fmt(limitBuy)} **Limit Buy** জোন অথবা ওপরে ${fmt(sellLiqZone)} সেল/লিকুইডেশন জোনের প্রতিক্রিয়া দেখে সিদ্ধান্ত নিন।`;
+        label = `WAIT — এখনই BUY বা SELL নয় (${st.pattern})`;
+        advice = `বর্তমান দাম **${fmt(t.price)}** নেকলাইন (**${fmt(st.neckline)}**) ও বটম জোনের মাঝে আছে, আর **RSI ${t.rsi14}** নিরপেক্ষ। নিশ্চিত ব্রেকআউট বা **${fmt(limitBuy)}** Limit Buy / **${fmt(sellLiqZone)}** Sell জোনে ভলিউমের প্রতিক্রিয়া না দেখা পর্যন্ত অপেক্ষা করাই নিরাপদ।`;
       }
 
       return {
-        coin,
-        decision,
-        label,
+        coin, decision, label,
         pctRange: `${lowPct}% থেকে ${highPct}%`,
-        refPrice: t.price,
-        limitBuy,
-        sellLiqZone,
+        refPrice: t.price, limitBuy, sellLiqZone,
+        neckline: st.neckline, pattern: st.pattern, trend: st.trend,
         rsi: t.rsi14,
         volText: `24h Vol: ${Number(t.vol24 || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })}`,
         candleText: t.candleBias,
-        advice,
-        lockedUntil: now + LOCK_MS,
+        advice, alertNote: brokenAlert,
+        validUntil: now + HOLD_WINDOW_MS,
         computedAt: new Date().toLocaleTimeString()
       };
     }
 
-    function ensureLockedDayTrade(coin, forceNew = false) {
-      const existing = app.lockedDayTrade[coin];
+    function syncBotDayTradePlan(coin, forceNew = false) {
+      const t = app.coins[coin];
       const now = Date.now();
-      if (!forceNew && existing && existing.refPrice > 0 && now < existing.lockedUntil) {
+      const existing = app.botPlans[coin];
+
+      if (!t || t.price <= 0) {
+        if (!existing) app.botPlans[coin] = createBotDayTradePlan(coin, "");
+        return app.botPlans[coin];
+      }
+
+      if (existing && existing.limitBuy > 0 && t.price < existing.limitBuy * 0.998) {
+        const msg = `আগের Limit Buy (${fmt(existing.limitBuy)}) ভেঙে দাম নিচে ${fmt(t.price)}-এ নেমে গেছে—তাই বট নতুন সুইং/নেকলাইন অনুযায়ী হিসাব আপডেট করেছে।`;
+        app.botPlans[coin] = createBotDayTradePlan(coin, msg);
+        return app.botPlans[coin];
+      }
+
+      if (!forceNew && existing && existing.refPrice > 0 && now < existing.validUntil) {
         return existing;
       }
-      if (app.coins[coin]?.price > 0 || !existing) {
-        app.lockedDayTrade[coin] = createLockedDayTradePlan(coin);
-      }
-      return app.lockedDayTrade[coin];
+
+      app.botPlans[coin] = createBotDayTradePlan(coin, existing ? existing.alertNote : "");
+      return app.botPlans[coin];
     }
 
     function forceRecalculateDayTrade(coin = null) {
       const c = coin || app.searchedCoin;
       if (!app.coins[c]) return;
       app.searchedCoin = c;
-      ensureLockedDayTrade(c, true);
+      app.botPlans[c] = createBotDayTradePlan(c, "");
       renderDayTradeReport();
     }
 
     function renderDayTradeReport() {
       const c = app.searchedCoin;
-      const plan = ensureLockedDayTrade(c, false);
+      const plan = syncBotDayTradePlan(c, false);
       const box = document.getElementById("dayTradeReportBox");
       if (!plan || !box) return;
 
-      const remSec = Math.max(0, Math.ceil((plan.lockedUntil - Date.now()) / 1000));
+      const remSec = Math.max(0, Math.ceil((plan.validUntil - Date.now()) / 1000));
       const cls = plan.decision === "BUY" ? "buy" : (plan.decision === "SELL" ? "sell" : "");
       const bCls = plan.decision === "BUY" ? "b-buy" : (plan.decision === "SELL" ? "b-sell" : "b-hold");
 
       box.innerHTML = `
         <div class="deep-grid">
-          <div class="metric-box"><div class="mk">Coin &amp; Locked Ref Price</div><div class="mv">${c} — ${fmt(plan.refPrice)}</div></div>
-          <div class="metric-box"><div class="mk">Day-Trade % Range</div><div class="mv">${plan.pctRange}</div></div>
-          <div class="metric-box"><div class="mk">Limit Buy Zone</div><div class="mv">${fmt(plan.limitBuy)}</div></div>
-          <div class="metric-box"><div class="mk">Sell / Liq. Zone</div><div class="mv">${fmt(plan.sellLiqZone)}</div></div>
+          <div class="metric-box"><div class="mk">Coin &amp; Trend</div><div class="mv">${c} — ${plan.trend}</div></div>
+          <div class="metric-box"><div class="mk">Chart Pattern</div><div class="mv">${plan.pattern}</div></div>
+          <div class="metric-box"><div class="mk">Neckline &amp; Limit Buy</div><div class="mv">${fmt(plan.neckline)} | ${fmt(plan.limitBuy)}</div></div>
+          <div class="metric-box"><div class="mk">Sell / Liq. Zone &amp; %</div><div class="mv">${fmt(plan.sellLiqZone)} (${plan.pctRange})</div></div>
           <div class="metric-box"><div class="mk">RSI (14) &amp; Volume</div><div class="mv">RSI ${plan.rsi} | ${plan.volText}</div></div>
         </div>
         <div class="outlook-box ${cls}">
           <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:4px;">
-            <span>🎯 ডে-ট্রেড পরামর্শ (${c}): ${plan.label}</span>
-            <span class="badge ${bCls}">Decision: ${plan.decision} • Lock: ${remSec}s</span>
+            <span>🤖 ডে-ট্রেড সিদ্ধান্ত (${c}): ${plan.label}</span>
+            <span class="badge ${bCls}">Decision: ${plan.decision} • Next Check: ${remSec}s</span>
           </div>
-          <div class="daytrade-box"><strong>কী করবেন:</strong> ${plan.advice}</div>
+          ${plan.alertNote ? `<div class="alert-strip">⚠️ <strong>বট সতর্কতা:</strong> ${plan.alertNote}</div>` : ""}
+          <div class="daytrade-box"><strong>বটের চূড়ান্ত পরামর্শ:</strong> ${plan.advice}</div>
           <div style="margin-top:6px;color:var(--muted);font-size:0.77rem;">
-            • <strong>ক্যালকুলেশন সময়:</strong> ${plan.computedAt} (প্রতি ১ সেকেন্ডে বদলাবে না; <strong>New 60s Study</strong> চাপলে বা ৬০ সেকেন্ড পর আপডেট হবে)<br/>
-            • <strong>রানিং ক্যান্ডেল/ভলিউম:</strong> ${plan.candleText} | ${plan.volText}<br/>
+            • <strong>ক্যান্ডেল ও ভলিউম:</strong> ${plan.candleText} | ${plan.volText} (হিসাব সময়: ${plan.computedAt})<br/>
             • <strong>আগের নিউজ:</strong> ${app.newsContext.prevNews}<br/>
             • <strong>লাইভ নিউজ/মার্কেট চাপ:</strong> ${app.newsContext.liveNews}
           </div>
@@ -640,11 +714,6 @@
         document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${t.signal}</span>`;
       });
       applyAutoPlanToInputs(false);
-      // Do NOT overwrite locked day-trade decision on every 1s tick; only initialize if never computed yet
-      if (!app.lockedDayTrade[app.searchedCoin] && app.coins[app.searchedCoin]?.price > 0) {
-        ensureLockedDayTrade(app.searchedCoin, true);
-        renderDayTradeReport();
-      }
     }
 
     function renderGuardLog() {
@@ -730,7 +799,7 @@
       const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(
         app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`)
       );
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_locked_daytrade_journal.csv"; a.click();
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_structure_bot_journal.csv"; a.click();
     }
 
     function startWS() {
@@ -758,15 +827,16 @@
               app.lastAutoTime[c] = now; createPosition(c, t.signal, t.lowMarginAmt, t.slPlan, t.tpPlan, "AUTO-BOT");
             }
           });
-          renderBoard(lastCoin); renderPositionsAndCards();
+          renderBoard(lastCoin);
+          renderPositionsAndCards();
+          renderDayTradeReport();
         }
       };
       ws.onclose = () => { badge.textContent = "Reconnecting..."; badge.className = "pill warn"; setTimeout(startWS, 1500); };
     }
 
-    // Only refresh the 60s countdown label once per second without changing BUY/SELL/WAIT decision
     setInterval(() => {
-      if (app.lockedDayTrade[app.searchedCoin]) {
+      if (app.botPlans[app.searchedCoin]) {
         renderDayTradeReport();
       }
     }, 1000);
