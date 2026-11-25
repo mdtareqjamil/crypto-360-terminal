@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° AI Crypto Demo Terminal — Search Box &amp; Visible Dynamic Guard</title>
+  <title>360° AI Crypto Demo Terminal — Multi-Timeframe Search &amp; Entry Timing</title>
   <style>
     :root {
       --bg: #060a12;
@@ -48,13 +48,14 @@
 
     .search-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .search-bar input { flex: 1; min-width: 210px; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; font-size: 0.88rem; }
-    .deep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-top: 10px; }
+    .deep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 10px; }
     .metric-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 9px; }
     .metric-box .mk { font-size: 0.7rem; color: var(--muted); }
     .metric-box .mv { font-size: 0.9rem; font-weight: 800; margin-top: 3px; }
     .outlook-box { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 11px; margin-top: 10px; font-size: 0.82rem; line-height: 1.5; }
     .outlook-box.buy { border-left-color: var(--buy); }
     .outlook-box.sell { border-left-color: var(--sell); }
+    .entry-banner { margin-top: 8px; padding: 9px 11px; border-radius: 8px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); font-size: 0.8rem; }
 
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
@@ -97,8 +98,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ 360° AI Crypto Demo Terminal — Search Box &amp; Visible Dynamic Guard</h1>
-      <p>সার্চ বক্সে হিস্ট্রি/ক্যান্ডেল/RSI/ভলিউম/নিউজ বিশ্লেষণে ভবিষ্যৎ আউটলুক + রানিং ট্রেডে দৃশ্যমান Dynamic Guard</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Multi-Timeframe Search &amp; Entry Timing</h1>
+      <p>সার্চ বারে মাস/সপ্তাহ/দিন, ক্যান্ডেল/টিক, RSI, ভলিউম ও নিউজ বিশ্লেষণে সম্ভাব্য দিক, % রেঞ্জ এবং কখন এন্ট্রি নেওয়া যুক্তিসঙ্গত তার নির্দেশনা</p>
     </div>
     <div class="row-flex">
       <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
@@ -117,10 +118,10 @@
     <div class="card"><div class="kpi-label">Current Balance (Equity)</div><div id="cEq" class="kpi-val">$10,000.00</div><div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div></div>
   </div>
 
-  <!-- 2. Search Box (Future Prediction + History + Candle/Price + RSI + Volume + News) -->
+  <!-- 2. Search Box (Multi-Timeframe + History + Candle/Tick + RSI + Volume + News + Entry Timing) -->
   <div class="card" style="margin-bottom:12px;">
     <div class="row-flex" style="justify-content:space-between;">
-      <h2 style="font-size:1rem;">🔎 কয়েন সার্চ বক্স — Future Outlook (History, Candle/Tick, RSI, Volume &amp; News)</h2>
+      <h2 style="font-size:1rem;">🔎 কয়েন সার্চ বক্স — Future Outlook, % Range &amp; Entry Timing</h2>
       <div class="row-flex">
         <button class="btn btn-ghost" onclick="quickSearch('BTC')">BTC</button>
         <button class="btn btn-ghost" onclick="quickSearch('ETH')">ETH</button>
@@ -238,7 +239,7 @@
     </div>
   </div>
 
-  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — সার্চ রিপোর্ট বা ডাইনামিক SL বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — সার্চ রিপোর্ট, এন্ট্রি টাইমিং বা ডাইনামিক SL বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
     const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
@@ -256,7 +257,13 @@
       lastGuardCheckText: "Waiting for live price...",
       lastAutoTime: {},
       lastTick: performance.now(),
-      newsSentiment: { score: 56, label: "Neutral-Bullish" },
+      marketContext: {
+        monthBias: "Cautious / Late-Nov Position Shift",
+        weekBias: "Bearish / Range-Bound Pressure",
+        dayBias: "Volatility & Liquidity Watch",
+        newsScore: 44,
+        newsLabel: "Risk-Off / Caution"
+      },
       guardNotes: ["Dynamic Guard চালু আছে: রানিং ট্রেডের প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
       coins: {}
     };
@@ -268,6 +275,8 @@
         prices: [], signal: "HOLD", score360: 50, rsi14: 50,
         candleBias: "Neutral Tick", historySummary: "হিস্ট্রি সংগ্রহ হচ্ছে...",
         volumeSummary: "ভলিউম যাচাই হচ্ছে...",
+        pctRangeText: "—",
+        entryTimingText: "লাইভ টিক এলে এন্ট্রি টাইমিং হিসাব হবে।",
         directionPlan: "BUY", lowMarginAmt: 300, slPlan: 0, tpPlan: 0,
         futurePossibility: "Waiting for setup",
         whyText: "লাইভ ডেটা সংগ্রহ হচ্ছে...",
@@ -307,6 +316,8 @@
       if (s.length < 4 || t.price <= 0) {
         t.signal = "HOLD"; t.score360 = 50; t.rsi14 = 50; t.directionPlan = "BUY";
         t.lowMarginAmt = Math.max(50, Math.round(app.cash * 0.03));
+        t.pctRangeText = "—";
+        t.entryTimingText = "প্রাথমিক টিক সংগ্রহ হচ্ছে; ২–৩টি টিকের পর এন্ট্রি জোনের হিসাব দেখাবে।";
         t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি সংগ্রহ হচ্ছে...";
         t.futureForecastDetail = "লাইভ টিক সংগ্রহ চলছে—কয়েক সেকেন্ডে হিস্ট্রি, RSI ও ভলিউম হিসাব পূর্ণ হবে।";
         return;
@@ -325,7 +336,7 @@
       const volEst = Math.max(t.price * 0.006, range24 * 0.014);
       const minHist = Math.min(...s), maxHist = Math.max(...s);
 
-      t.historySummary = `হিস্ট্রি রেঞ্জ ${fmt(minHist)} – ${fmt(maxHist)} (24h ${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%, রেঞ্জ ${(rangePos * 100).toFixed(0)}%)`;
+      t.historySummary = `মাস/সপ্তাহ/দিন প্রেক্ষাপট (${app.marketContext.weekBias}) + হিস্ট্রি রেঞ্জ ${fmt(minHist)} – ${fmt(maxHist)} (24h ${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%)`;
       t.volumeSummary = `24h ভলিউম: ${Number(t.vol24 || 0).toLocaleString("en-US", { maximumFractionDigits: 1 })} | বর্তমান টিক: ${microPct >= 0 ? "+" : ""}${microPct.toFixed(3)}%`;
 
       if (t.price >= prevP && prevP >= prev2P) t.candleBias = "Bullish Continuation (পরপর সবুজ টিক চাপ)";
@@ -334,38 +345,47 @@
       else if (t.price < prevP && prevP > prev2P) t.candleBias = "Bearish Rejection (ওপর থেকে চাপ)";
       else t.candleBias = "Balanced / Sideways Tick";
 
-      let bull = 48, bear = 48;
-      if (fast > slow) bull += 15; else bear += 15;
-      if (momPct > 0.04) bull += 11; else if (momPct < -0.04) bear += 11;
-      if (t.chg24 > 1.0) bull += 7; else if (t.chg24 < -1.0) bear += 7;
-      if (t.rsi14 <= 32) bull += 10; else if (t.rsi14 >= 70) bear += 10;
-      if (app.newsSentiment.score >= 60) bull += 5; else if (app.newsSentiment.score <= 40) bear += 5;
+      let bull = 46, bear = 50;
+      if (fast > slow) bull += 14; else bear += 14;
+      if (momPct > 0.04) bull += 10; else if (momPct < -0.04) bear += 10;
+      if (t.chg24 > 1.2) bull += 6; else if (t.chg24 < -1.2) bear += 7;
+      if (t.rsi14 <= 30) bull += 10; else if (t.rsi14 >= 70) bear += 10;
+      if (app.marketContext.newsScore >= 60) bull += 5; else if (app.marketContext.newsScore <= 45) bear += 5;
 
       t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
-      const moveEst = Math.max(0.6, Math.min(2.6, (range24 / Math.max(t.price, 1)) * 35)).toFixed(2);
+      const lowPct = (-Math.max(1.5, Math.min(4.5, (range24 / Math.max(t.price, 1)) * 45))).toFixed(1);
+      const highPct = (+Math.max(1.8, Math.min(6.0, (range24 / Math.max(t.price, 1)) * 55))).toFixed(1);
+      t.pctRangeText = `${lowPct}% থেকে ${highPct}%`;
 
       if (bull >= bear && bull >= 60) {
         t.signal = "BUY"; t.directionPlan = "BUY"; t.score360 = Math.min(92, bull);
         t.slPlan = Math.max(0.000001, t.price - volEst);
         t.tpPlan = t.price + volEst * 1.8;
-        t.futurePossibility = `সম্ভাব্য BUY (${t.score360}%) — ঊর্ধ্বমুখী গতি অনুকূলে`;
-        t.whyText = `BUY অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%।`;
-        t.futureForecastDetail = `হিস্ট্রি, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.newsSentiment.score}%) মিলিয়ে সামনে দাম প্রায় +${moveEst}% (${fmt(t.tpPlan)}) পর্যন্ত যাওয়ার সম্ভাবনা বেশি; নিচে ${fmt(t.slPlan)} ভাঙলে ঝুঁকি বাড়তে পারে।`;
+        t.futurePossibility = `সম্ভাব্য BUY (${t.score360}%) — স্বল্পমেয়াদী বাউন্স / রিকভারি`;
+        t.entryTimingText = rangePos <= 0.45
+          ? `এন্ট্রি টাইমিং: এখন সাপোর্ট/নিচের রেঞ্জে (${(rangePos * 100).toFixed(0)}%) ও RSI ${t.rsi14} থাকায় কম মার্জিনে BUY এন্ট্রি বিবেচনা করা যায়; SL ${fmt(t.slPlan)} এর নিচে রাখুন।`
+          : `এন্ট্রি টাইমিং: দাম ইতিমধ্যে ওপরের দিকে (${(rangePos * 100).toFixed(0)}%) আছে—হুট করে চূড়ায় না ঢুকে ছোট পুলব্যাক (নিচে নামলে) বা কনফার্মেশন দেখে BUY এন্ট্রি নেওয়া নিরাপদ।`;
+        t.whyText = `BUY অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, রেঞ্জ ${t.pctRangeText}।`;
+        t.futureForecastDetail = `মাস/সপ্তাহের সতর্ক ট্রেন্ড, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.marketContext.newsScore}%) মিলিয়ে সম্ভাব্য মুভমেন্ট রেঞ্জ ${t.pctRangeText}—টার্গেট ${fmt(t.tpPlan)} এর দিকে যেতে পারে।`;
       } else if (bear > bull && bear >= 60) {
         t.signal = "SELL"; t.directionPlan = "SELL"; t.score360 = Math.min(92, bear);
         t.slPlan = t.price + volEst;
         t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
         t.futurePossibility = `সম্ভাব্য SELL (${t.score360}%) — নিম্নমুখী চাপ সক্রিয়`;
-        t.whyText = `SELL অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct.toFixed(2)}%।`;
-        t.futureForecastDetail = `হিস্ট্রি, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.newsSentiment.score}%) মিলিয়ে সামনে দাম প্রায় -${moveEst}% (${fmt(t.tpPlan)}) পর্যন্ত নামার সম্ভাবনা বেশি; ওপরে ${fmt(t.slPlan)} গেলে অবস্থান বদলাতে পারে।`;
+        t.entryTimingText = rangePos >= 0.55
+          ? `এন্ট্রি টাইমিং: দাম ওপরের রেঞ্জে (${(rangePos * 100).toFixed(0)}%) ও নিম্নমুখী চাপে থাকায় SELL এন্ট্রি বিবেচনা করা যায়; SL ${fmt(t.slPlan)} এর ওপরে রাখুন।`
+          : `এন্ট্রি টাইমিং: দাম ইতিমধ্যে নিচের দিকে (${(rangePos * 100).toFixed(0)}%) থাকায় একদম তলানিতে শর্ট না করে সামান্য বাউন্স/রিজেকশন দেখে SELL এন্ট্রি নেওয়া যুক্তিসঙ্গত।`;
+        t.whyText = `SELL অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, রেঞ্জ ${t.pctRangeText}।`;
+        t.futureForecastDetail = `সাপ্তাহিক/দৈনিক চাপ, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.marketContext.newsScore}%) মিলিয়ে সম্ভাব্য মুভমেন্ট রেঞ্জ ${t.pctRangeText}—টার্গেট ${fmt(t.tpPlan)} এর দিকে নামার ঝুঁকি/সম্ভাবনা বেশি।`;
       } else {
         t.signal = "HOLD"; t.directionPlan = fast >= slow ? "BUY" : "SELL";
         t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
         t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
         t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
-        t.futurePossibility = `WATCH (${t.score360}%) — ব্রেকআউটের অপেক্ষায় (${t.directionPlan})`;
-        t.whyText = `WATCH (${t.score360}%): RSI ${t.rsi14} ও ${t.candleBias} এখন রেঞ্জিং অবস্থায়।`;
-        t.futureForecastDetail = `হিস্ট্রি, RSI (${t.rsi14}) ও ${t.volumeSummary} অনুযায়ী বাজার এখন সাইডওয়েজ/রেঞ্জিং অবস্থায় আছে; ব্রেকআউট নিশ্চিত না হওয়া পর্যন্ত কম মার্জিনে (${t.directionPlan}) সতর্ক থাকা ভালো।`;
+        t.futurePossibility = `WAIT / RANGE (${t.score360}%) — স্পষ্ট ব্রেকআউটের অপেক্ষা`;
+        t.entryTimingText = `এন্ট্রি টাইমিং: এখনই তাড়াহুড়ো করে এন্ট্রি না নেওয়াই ভালো। রেঞ্জের নিচের প্রান্ত বা স্পষ্ট ব্রেকআউট/ব্রেকডাউন নিশ্চিত হলে ${t.directionPlan} দিকের প্ল্যান (SL ${fmt(t.slPlan)}, TP ${fmt(t.tpPlan)}) যাচাই করুন।`;
+        t.whyText = `WAIT (${t.score360}%): RSI ${t.rsi14} ও ${t.candleBias} রেঞ্জিং অবস্থায় আছে।`;
+        t.futureForecastDetail = `মাস/সপ্তাহ/দিনের কাঠামো ও ${t.volumeSummary} অনুযায়ী বাজার এখন সাইডওয়েজ/সতর্ক অবস্থায় আছে; সম্ভাব্য ওঠানামা ${t.pctRangeText} এর মধ্যে থাকতে পারে।`;
       }
     }
 
@@ -380,10 +400,10 @@
       container.innerHTML = `
         <div class="deep-grid">
           <div class="metric-box"><div class="mk">Coin &amp; Live Price</div><div class="mv">${t.coin} — ${fmt(t.price)}</div></div>
+          <div class="metric-box"><div class="mk">সম্ভাব্য % রেঞ্জ</div><div class="mv">${t.pctRangeText}</div></div>
           <div class="metric-box"><div class="mk">RSI (14)</div><div class="mv">${t.rsi14} (${rsiTag})</div></div>
-          <div class="metric-box"><div class="mk">360° Score</div><div class="mv">${t.score360}% (${t.signal})</div></div>
+          <div class="metric-box"><div class="mk">360° Score &amp; Side</div><div class="mv">${t.score360}% (${t.signal})</div></div>
           <div class="metric-box"><div class="mk">Auto SL / Target</div><div class="mv">${fmt(t.slPlan)} / ${fmt(t.tpPlan)}</div></div>
-          <div class="metric-box"><div class="mk">Low-Margin Plan</div><div class="mv">$${t.lowMarginAmt} (${t.directionPlan})</div></div>
         </div>
         <div class="outlook-box ${cls}">
           <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:4px;">
@@ -391,10 +411,11 @@
             <span class="badge ${bCls}">${t.signal}</span>
           </div>
           <div><strong>ভবিষ্যতে কী হতে পারে:</strong> ${t.futureForecastDetail}</div>
-          <div style="margin-top:5px;color:var(--muted);font-size:0.77rem;">
-            • <strong>হিস্ট্রি:</strong> ${t.historySummary}<br/>
+          <div class="entry-banner"><strong>⏱️ কখন এন্ট্রি নেওয়া যুক্তিসঙ্গত:</strong> ${t.entryTimingText}</div>
+          <div style="margin-top:6px;color:var(--muted);font-size:0.77rem;">
+            • <strong>মাস/সপ্তাহ/দিন ও হিস্ট্রি:</strong> ${t.historySummary} | <strong>ক্যালেন্ডার:</strong> ${app.marketContext.monthBias}<br/>
             • <strong>ক্যান্ডেল/টিক:</strong> ${t.candleBias}<br/>
-            • <strong>ভলিউম ও নিউজ:</strong> ${t.volumeSummary} | News: ${app.newsSentiment.score}% (${app.newsSentiment.label})
+            • <strong>ভলিউম ও নিউজ:</strong> ${t.volumeSummary} | News: ${app.marketContext.newsScore}% (${app.marketContext.newsLabel})
           </div>
         </div>
       `;
@@ -646,8 +667,10 @@
 
     function downloadJournalCSV() {
       if (!app.history.length) return;
-      const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`));
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_guard_journal.csv"; a.click();
+      const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(
+        app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`)
+      );
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_entry_timing_journal.csv"; a.click();
     }
 
     function startWS() {
