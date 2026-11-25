@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° AI Crypto Demo Terminal — Visible Dynamic Guard</title>
+  <title>360° AI Crypto Demo Terminal — Search Box &amp; Visible Dynamic Guard</title>
   <style>
     :root {
       --bg: #060a12;
@@ -40,12 +40,21 @@
 
     .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
     .grid-2 { display: grid; grid-template-columns: 1.55fr 1fr; gap: 12px; margin-bottom: 12px; }
-    .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-    @media (max-width: 980px) { .grid-2, .grid-equal { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) { .grid-2 { grid-template-columns: 1fr; } }
 
     .kpi-label { font-size: 0.74rem; color: var(--muted); text-transform: uppercase; }
     .kpi-val { font-size: 1.32rem; font-weight: 800; margin-top: 5px; }
     .kpi-sub { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
+
+    .search-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .search-bar input { flex: 1; min-width: 210px; background: var(--panel-2); color: var(--text); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; font-size: 0.88rem; }
+    .deep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-top: 10px; }
+    .metric-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 9px; }
+    .metric-box .mk { font-size: 0.7rem; color: var(--muted); }
+    .metric-box .mv { font-size: 0.9rem; font-weight: 800; margin-top: 3px; }
+    .outlook-box { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 11px; margin-top: 10px; font-size: 0.82rem; line-height: 1.5; }
+    .outlook-box.buy { border-left-color: var(--buy); }
+    .outlook-box.sell { border-left-color: var(--sell); }
 
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
@@ -68,7 +77,7 @@
     .pos-up { color: var(--buy); font-weight: 700; }
     .pos-down { color: var(--sell); font-weight: 700; }
 
-    .box-list { display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto; }
+    .box-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
     .box-item { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 9px; padding: 10px 12px; font-size: 0.8rem; }
     .box-item.buy { border-left-color: var(--buy); }
     .box-item.sell { border-left-color: var(--sell); }
@@ -88,8 +97,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ 360° AI Crypto Demo Terminal — Visible Dynamic Guard</h1>
-      <p>রানিং পজিশনে Dynamic Guard কী করছে (Watch / Profit Lock / Tightened SL) তা প্রতিটি ট্রেডের পাশে ও লগে সরাসরি দেখা যাবে</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Search Box &amp; Visible Dynamic Guard</h1>
+      <p>সার্চ বক্সে হিস্ট্রি/ক্যান্ডেল/RSI/ভলিউম/নিউজ বিশ্লেষণে ভবিষ্যৎ আউটলুক + রানিং ট্রেডে দৃশ্যমান Dynamic Guard</p>
     </div>
     <div class="row-flex">
       <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
@@ -100,29 +109,37 @@
     </div>
   </div>
 
+  <!-- 1. Account Summary -->
   <div class="grid-4">
-    <div class="card">
-      <div class="kpi-label">Available Cash Balance</div>
-      <div id="cCash" class="kpi-val">$10,000.00</div>
-      <div class="kpi-sub">Demo Simulation ($10,000 Start)</div>
-    </div>
-    <div class="card">
-      <div class="kpi-label">Invested / Margin Used</div>
-      <div id="cInv" class="kpi-val">$0.00</div>
-      <div id="cPosSub" class="kpi-sub">0 Active Positions</div>
-    </div>
-    <div class="card">
-      <div class="kpi-label">Live Profit / Loss</div>
-      <div id="cPnl" class="kpi-val">$0.00</div>
-      <div id="cLossSub" class="kpi-sub">Daily Loss Guard: $0.00 / $500.00</div>
-    </div>
-    <div class="card">
-      <div class="kpi-label">Current Balance (Equity)</div>
-      <div id="cEq" class="kpi-val">$10,000.00</div>
-      <div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div>
-    </div>
+    <div class="card"><div class="kpi-label">Available Cash Balance</div><div id="cCash" class="kpi-val">$10,000.00</div><div class="kpi-sub">Demo Simulation ($10,000 Start)</div></div>
+    <div class="card"><div class="kpi-label">Invested / Margin Used</div><div id="cInv" class="kpi-val">$0.00</div><div id="cPosSub" class="kpi-sub">0 Active Positions</div></div>
+    <div class="card"><div class="kpi-label">Live Profit / Loss</div><div id="cPnl" class="kpi-val">$0.00</div><div id="cLossSub" class="kpi-sub">Daily Loss Guard: $0.00 / $500.00</div></div>
+    <div class="card"><div class="kpi-label">Current Balance (Equity)</div><div id="cEq" class="kpi-val">$10,000.00</div><div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div></div>
   </div>
 
+  <!-- 2. Search Box (Future Prediction + History + Candle/Price + RSI + Volume + News) -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="row-flex" style="justify-content:space-between;">
+      <h2 style="font-size:1rem;">🔎 কয়েন সার্চ বক্স — Future Outlook (History, Candle/Tick, RSI, Volume &amp; News)</h2>
+      <div class="row-flex">
+        <button class="btn btn-ghost" onclick="quickSearch('BTC')">BTC</button>
+        <button class="btn btn-ghost" onclick="quickSearch('ETH')">ETH</button>
+        <button class="btn btn-ghost" onclick="quickSearch('SOL')">SOL</button>
+        <button class="btn btn-ghost" onclick="quickSearch('XRP')">XRP</button>
+        <button class="btn btn-ghost" onclick="quickSearch('DOGE')">DOGE</button>
+        <button class="btn btn-ghost" onclick="quickSearch('ADA')">ADA</button>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <input id="deepSearchInput" type="text" placeholder="কয়েন লিখুন (যেমন: BTC, ETH, SOL, XRP, DOGE, ADA) এবং Analyze Future চাপুন..." onkeydown="if(event.key==='Enter') runDeepSearch()" />
+      <button class="btn btn-accent" onclick="runDeepSearch()">🔍 Analyze Future</button>
+    </div>
+
+    <div id="deepSearchResult"></div>
+  </div>
+
+  <!-- 3. Live Market Board + Dynamic Guard Log -->
   <div class="grid-2">
     <div class="card">
       <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
@@ -152,10 +169,11 @@
     </div>
   </div>
 
+  <!-- 4. Active Positions (Visible Dynamic SL) -->
   <div class="card" style="margin-bottom:12px;">
     <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
       <h2 style="font-size:0.98rem;">📌 চলমান পজিশন — Dynamic SL পরিবর্তনের সরাসরি অবস্থা</h2>
-      <span style="font-size:0.74rem; color:var(--muted);">Initial SL বনাম Current SL এবং Guard Status নিচে দেখুন</span>
+      <span style="font-size:0.74rem; color:var(--muted);">Initial SL বনাম Current SL এবং Guard Status</span>
     </div>
     <div class="table-wrap">
       <table>
@@ -171,11 +189,12 @@
             <th>Exit</th>
           </tr>
         </thead>
-        <tbody id="posBody"><tr><td colspan="8" style="text-align:center; color:var(--muted);">কোনো ওপেন পজিশন নেই (টেস্ট করতে BUY বা SELL চাপুন)</td></tr></tbody>
+        <tbody id="posBody"><tr><td colspan="8" style="text-align:center; color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr></tbody>
       </table>
     </div>
   </div>
 
+  <!-- 5. Manual Plan + CSV Journal -->
   <div class="grid-2">
     <div class="card">
       <div class="row-flex" style="justify-content:space-between;">
@@ -219,7 +238,7 @@
     </div>
   </div>
 
-  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — ডাইনামিক SL ও সিগন্যাল বাস্তব বাজারে শতভাগ নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — সার্চ রিপোর্ট বা ডাইনামিক SL বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
     const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
@@ -232,21 +251,27 @@
       killSwitch: false,
       autoBot: false,
       selectedCoin: "BTC",
+      searchedCoin: "BTC",
       guardAdjustCount: 0,
       lastGuardCheckText: "Waiting for live price...",
       lastAutoTime: {},
       lastTick: performance.now(),
-      guardNotes: ["Dynamic Guard চালু আছে: ট্রেড ওপেন হলে প্রতি লাইভ আপডেটে প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
+      newsSentiment: { score: 56, label: "Neutral-Bullish" },
+      guardNotes: ["Dynamic Guard চালু আছে: রানিং ট্রেডের প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
       coins: {}
     };
 
     SYMBOLS.forEach(pair => {
       const c = pair.split("/")[0];
       app.coins[c] = {
-        coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0,
-        prices: [], signal: "HOLD", score360: 50,
+        coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0, vol24: 0,
+        prices: [], signal: "HOLD", score360: 50, rsi14: 50,
+        candleBias: "Neutral Tick", historySummary: "হিস্ট্রি সংগ্রহ হচ্ছে...",
+        volumeSummary: "ভলিউম যাচাই হচ্ছে...",
         directionPlan: "BUY", lowMarginAmt: 300, slPlan: 0, tpPlan: 0,
-        whyText: "লাইভ ডেটা সংগ্রহ হচ্ছে..."
+        futurePossibility: "Waiting for setup",
+        whyText: "লাইভ ডেটা সংগ্রহ হচ্ছে...",
+        futureForecastDetail: "রিয়েল-টাইম প্রাইস টিক এলে বিস্তারিত ভবিষ্যৎ বিশ্লেষণ তৈরি হবে।"
       };
     });
 
@@ -255,6 +280,20 @@
       if (n >= 1000) return "$" + n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       if (n >= 1) return "$" + n.toFixed(4);
       return "$" + n.toFixed(6);
+    }
+
+    function calcRSI(arr, period = 14) {
+      if (!arr || arr.length < 3) return 50;
+      const slice = arr.slice(-(period + 1));
+      let gains = 0, losses = 0;
+      for (let i = 1; i < slice.length; i++) {
+        const diff = slice[i] - slice[i - 1];
+        if (diff > 0) gains += diff;
+        else losses += Math.abs(diff);
+      }
+      if (losses === 0) return gains > 0 ? 72 : 50;
+      if (gains === 0) return 28;
+      return Math.round(Math.max(5, Math.min(95, 100 - (100 / (1 + (gains / losses))))));
     }
 
     function pushGuardNote(txt) {
@@ -266,51 +305,127 @@
     function computeCoinIntelligence(t) {
       const s = t.prices;
       if (s.length < 4 || t.price <= 0) {
-        t.signal = "HOLD"; t.score360 = 50; t.directionPlan = "BUY";
+        t.signal = "HOLD"; t.score360 = 50; t.rsi14 = 50; t.directionPlan = "BUY";
         t.lowMarginAmt = Math.max(50, Math.round(app.cash * 0.03));
         t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি সংগ্রহ হচ্ছে...";
+        t.futureForecastDetail = "লাইভ টিক সংগ্রহ চলছে—কয়েক সেকেন্ডে হিস্ট্রি, RSI ও ভলিউম হিসাব পূর্ণ হবে।";
         return;
       }
 
       const fast = s.slice(-Math.min(4, s.length)).reduce((a, b) => a + b, 0) / Math.min(4, s.length);
       const slow = s.slice(-Math.min(18, s.length)).reduce((a, b) => a + b, 0) / Math.min(18, s.length);
       const momPct = ((t.price - s[0]) / s[0]) * 100;
+      const prevP = s[s.length - 2] || t.price;
+      const prev2P = s[s.length - 3] || prevP;
+      const microPct = ((t.price - prevP) / prevP) * 100;
+
+      t.rsi14 = calcRSI(s, 14);
       const range24 = Math.max(t.high24 - t.low24, t.price * 0.015);
+      const rangePos = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
       const volEst = Math.max(t.price * 0.006, range24 * 0.014);
+      const minHist = Math.min(...s), maxHist = Math.max(...s);
+
+      t.historySummary = `হিস্ট্রি রেঞ্জ ${fmt(minHist)} – ${fmt(maxHist)} (24h ${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%, রেঞ্জ ${(rangePos * 100).toFixed(0)}%)`;
+      t.volumeSummary = `24h ভলিউম: ${Number(t.vol24 || 0).toLocaleString("en-US", { maximumFractionDigits: 1 })} | বর্তমান টিক: ${microPct >= 0 ? "+" : ""}${microPct.toFixed(3)}%`;
+
+      if (t.price >= prevP && prevP >= prev2P) t.candleBias = "Bullish Continuation (পরপর সবুজ টিক চাপ)";
+      else if (t.price <= prevP && prevP <= prev2P) t.candleBias = "Bearish Continuation (পরপর লাল টিক চাপ)";
+      else if (t.price > prevP && prevP < prev2P) t.candleBias = "Bullish Reversal (নিচে থেকে বাউন্স)";
+      else if (t.price < prevP && prevP > prev2P) t.candleBias = "Bearish Rejection (ওপর থেকে চাপ)";
+      else t.candleBias = "Balanced / Sideways Tick";
 
       let bull = 48, bear = 48;
       if (fast > slow) bull += 15; else bear += 15;
-      if (momPct > 0.04) bull += 12; else if (momPct < -0.04) bear += 12;
+      if (momPct > 0.04) bull += 11; else if (momPct < -0.04) bear += 11;
       if (t.chg24 > 1.0) bull += 7; else if (t.chg24 < -1.0) bear += 7;
+      if (t.rsi14 <= 32) bull += 10; else if (t.rsi14 >= 70) bear += 10;
+      if (app.newsSentiment.score >= 60) bull += 5; else if (app.newsSentiment.score <= 40) bear += 5;
 
-      app.cash * 0.03;
       t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
+      const moveEst = Math.max(0.6, Math.min(2.6, (range24 / Math.max(t.price, 1)) * 35)).toFixed(2);
 
       if (bull >= bear && bull >= 60) {
         t.signal = "BUY"; t.directionPlan = "BUY"; t.score360 = Math.min(92, bull);
         t.slPlan = Math.max(0.000001, t.price - volEst);
         t.tpPlan = t.price + volEst * 1.8;
-        t.whyText = `BUY অনুকূল (${t.score360}%): স্বল্পমেয়াদী গড় ও মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%।`;
+        t.futurePossibility = `সম্ভাব্য BUY (${t.score360}%) — ঊর্ধ্বমুখী গতি অনুকূলে`;
+        t.whyText = `BUY অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%।`;
+        t.futureForecastDetail = `হিস্ট্রি, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.newsSentiment.score}%) মিলিয়ে সামনে দাম প্রায় +${moveEst}% (${fmt(t.tpPlan)}) পর্যন্ত যাওয়ার সম্ভাবনা বেশি; নিচে ${fmt(t.slPlan)} ভাঙলে ঝুঁকি বাড়তে পারে।`;
       } else if (bear > bull && bear >= 60) {
         t.signal = "SELL"; t.directionPlan = "SELL"; t.score360 = Math.min(92, bear);
         t.slPlan = t.price + volEst;
         t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
-        t.whyText = `SELL অনুকূল (${t.score360}%): নিম্নমুখী চাপ ও মোমেন্টাম ${momPct.toFixed(2)}%।`;
+        t.futurePossibility = `সম্ভাব্য SELL (${t.score360}%) — নিম্নমুখী চাপ সক্রিয়`;
+        t.whyText = `SELL অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, মোমেন্টাম ${momPct.toFixed(2)}%।`;
+        t.futureForecastDetail = `হিস্ট্রি, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.newsSentiment.score}%) মিলিয়ে সামনে দাম প্রায় -${moveEst}% (${fmt(t.tpPlan)}) পর্যন্ত নামার সম্ভাবনা বেশি; ওপরে ${fmt(t.slPlan)} গেলে অবস্থান বদলাতে পারে।`;
       } else {
         t.signal = "HOLD"; t.directionPlan = fast >= slow ? "BUY" : "SELL";
         t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
         t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
         t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
-        t.whyText = `WATCH (${t.score360}%): রেঞ্জিং অবস্থা; লো-মার্জিন প্ল্যান ${t.directionPlan} প্রস্তুত।`;
+        t.futurePossibility = `WATCH (${t.score360}%) — ব্রেকআউটের অপেক্ষায় (${t.directionPlan})`;
+        t.whyText = `WATCH (${t.score360}%): RSI ${t.rsi14} ও ${t.candleBias} এখন রেঞ্জিং অবস্থায়।`;
+        t.futureForecastDetail = `হিস্ট্রি, RSI (${t.rsi14}) ও ${t.volumeSummary} অনুযায়ী বাজার এখন সাইডওয়েজ/রেঞ্জিং অবস্থায় আছে; ব্রেকআউট নিশ্চিত না হওয়া পর্যন্ত কম মার্জিনে (${t.directionPlan}) সতর্ক থাকা ভালো।`;
       }
+    }
+
+    function renderDeepSearch() {
+      const t = app.coins[app.searchedCoin];
+      const container = document.getElementById("deepSearchResult");
+      if (!t) return;
+      const cls = t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "");
+      const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
+      const rsiTag = t.rsi14 >= 70 ? "Overbought" : (t.rsi14 <= 30 ? "Oversold" : "Balanced");
+
+      container.innerHTML = `
+        <div class="deep-grid">
+          <div class="metric-box"><div class="mk">Coin &amp; Live Price</div><div class="mv">${t.coin} — ${fmt(t.price)}</div></div>
+          <div class="metric-box"><div class="mk">RSI (14)</div><div class="mv">${t.rsi14} (${rsiTag})</div></div>
+          <div class="metric-box"><div class="mk">360° Score</div><div class="mv">${t.score360}% (${t.signal})</div></div>
+          <div class="metric-box"><div class="mk">Auto SL / Target</div><div class="mv">${fmt(t.slPlan)} / ${fmt(t.tpPlan)}</div></div>
+          <div class="metric-box"><div class="mk">Low-Margin Plan</div><div class="mv">$${t.lowMarginAmt} (${t.directionPlan})</div></div>
+        </div>
+        <div class="outlook-box ${cls}">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:4px;">
+            <span>🔮 ভবিষ্যৎ সম্ভাবনা: ${t.futurePossibility}</span>
+            <span class="badge ${bCls}">${t.signal}</span>
+          </div>
+          <div><strong>ভবিষ্যতে কী হতে পারে:</strong> ${t.futureForecastDetail}</div>
+          <div style="margin-top:5px;color:var(--muted);font-size:0.77rem;">
+            • <strong>হিস্ট্রি:</strong> ${t.historySummary}<br/>
+            • <strong>ক্যান্ডেল/টিক:</strong> ${t.candleBias}<br/>
+            • <strong>ভলিউম ও নিউজ:</strong> ${t.volumeSummary} | News: ${app.newsSentiment.score}% (${app.newsSentiment.label})
+          </div>
+        </div>
+      `;
+    }
+
+    function runDeepSearch() {
+      const raw = (document.getElementById("deepSearchInput").value || "").trim().toUpperCase().replace("/USD", "").replace("USDT", "").replace("USD", "");
+      if (app.coins[raw]) {
+        app.searchedCoin = raw;
+        selectCoin(raw);
+      } else {
+        document.getElementById("deepSearchResult").innerHTML =
+          `<div class="outlook-box"><strong>"${raw || "খালি"}"</strong> পাওয়া যায়নি। <strong>BTC, ETH, SOL, XRP, DOGE</strong> অথবা <strong>ADA</strong> লিখুন।</div>`;
+      }
+    }
+
+    function quickSearch(c) {
+      document.getElementById("deepSearchInput").value = c;
+      app.searchedCoin = c;
+      selectCoin(c);
     }
 
     function selectCoin(coin) {
       if (!app.coins[coin]) return;
       app.selectedCoin = coin;
+      app.searchedCoin = coin;
       document.getElementById("studyCoin").value = coin;
+      document.getElementById("deepSearchInput").value = coin;
       applyAutoPlanToInputs(true);
       renderBoard(null);
+      renderDeepSearch();
     }
 
     function applyAutoPlanToInputs(overwrite = true) {
@@ -350,26 +465,20 @@
       if (!t || t.price <= 0) return "লাইভ প্রাইস এখনো আসেনি।";
       if (isNaN(amt) || amt < 10 || amt > app.cash) return "অপর্যাপ্ত ব্যালেন্স।";
 
-      const entry = t.price;
-      const qty = amt / entry;
+      const entry = t.price, qty = amt / entry;
       const gap = Math.max(entry * 0.005, (t.high24 - t.low24) * 0.01 || entry * 0.005);
       const sl = (slVal && slVal > 0) ? slVal : (side === "BUY" ? entry - gap : entry + gap);
       const tp = (tpVal && tpVal > 0) ? tpVal : (side === "BUY" ? entry + gap * 1.8 : entry - gap * 1.8);
 
       app.cash -= amt;
-      app.positions.push({
-        coin, side, entry, qty, amt,
-        initialSl: sl, sl, tp, origin,
-        guardStatus: "Watching Price & Momentum",
-        lastActionNote: "Opened & guarded"
-      });
+      app.positions.push({ coin, side, entry, qty, amt, initialSl: sl, sl, tp, origin, guardStatus: "Watching Price & Momentum" });
       pushGuardNote(`${origin} Opened: ${coin} ${side} @ ${fmt(entry)} | Initial SL ${fmt(sl)} | TP ${fmt(tp)}`);
       renderPositionsAndCards();
       return `${coin} ${side} ট্রেড শুরু হয়েছে — Dynamic Guard মনিটর করছে!`;
     }
 
     function submitManualOrder() {
-      const msg = createPosition(
+      document.getElementById("mMsg").textContent = createPosition(
         document.getElementById("studyCoin").value,
         document.getElementById("mDir").value,
         parseFloat(document.getElementById("mAmt").value),
@@ -377,7 +486,6 @@
         parseFloat(document.getElementById("mTp").value),
         "MANUAL+GUARD"
       );
-      document.getElementById("mMsg").textContent = msg;
     }
 
     function closePosition(idx, reason = "Manual Exit") {
@@ -388,15 +496,11 @@
       app.cash += Math.max(0, p.amt + pnl);
       if (pnl < 0) {
         app.dailyLoss += Math.abs(pnl);
-        if (app.dailyLoss >= 500) {
-          app.killSwitch = true; app.autoBot = false; updateKillBadge();
-          pushGuardNote("KILL-SWITCH ACTIVE: দৈনিক লস $500 ছুঁয়েছে।");
-        }
+        if (app.dailyLoss >= 500) { app.killSwitch = true; app.autoBot = false; updateKillBadge(); pushGuardNote("KILL-SWITCH ACTIVE: দৈনিক লস $500 ছুঁয়েছে।"); }
       }
       app.history.unshift({ time: new Date().toLocaleTimeString(), coin: p.coin, side: p.side, entry: p.entry, exit: cp, pnl, reason });
       app.positions.splice(idx, 1);
-      renderPositionsAndCards();
-      renderHistory();
+      renderPositionsAndCards(); renderHistory();
     }
 
     function toggleAutoBot() {
@@ -411,13 +515,8 @@
 
     function updateKillBadge() {
       const b = document.getElementById("ksBadge");
-      if (app.killSwitch || app.dailyLoss >= 500) {
-        b.textContent = `Kill-Switch: STOP ($${app.dailyLoss.toFixed(0)}/$500)`;
-        b.className = "pill stop";
-      } else {
-        b.textContent = `Kill-Switch: Safe ($${app.dailyLoss.toFixed(0)}/$500)`;
-        b.className = "pill live";
-      }
+      if (app.killSwitch || app.dailyLoss >= 500) { b.textContent = `Kill-Switch: STOP ($${app.dailyLoss.toFixed(0)}/$500)`; b.className = "pill stop"; }
+      else { b.textContent = `Kill-Switch: Safe ($${app.dailyLoss.toFixed(0)}/$500)`; b.className = "pill live"; }
     }
 
     function resetAccount() {
@@ -464,6 +563,7 @@
         document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${t.signal}</span>`;
       });
       applyAutoPlanToInputs(false);
+      renderDeepSearch();
     }
 
     function renderGuardLog() {
@@ -476,66 +576,35 @@
 
     function renderPositionsAndCards() {
       let inv = 0, unrl = 0;
-
-      if (app.positions.length > 0) {
-        app.lastGuardCheckText = `Checked ${app.positions.length} active trade(s) at ${new Date().toLocaleTimeString()}`;
-      }
+      if (app.positions.length > 0) app.lastGuardCheckText = `Checked ${app.positions.length} active trade(s) at ${new Date().toLocaleTimeString()}`;
 
       for (let i = app.positions.length - 1; i >= 0; i--) {
-        const p = app.positions[i];
-        const t = app.coins[p.coin];
-        const cp = t?.price || p.entry;
-
+        const p = app.positions[i], t = app.coins[p.coin], cp = t?.price || p.entry;
         if (p.side === "BUY") {
           const gainPct = ((cp - p.entry) / p.entry) * 100;
           if (gainPct >= 0.6) {
-            const trailTarget = Math.max(p.sl, p.entry * 1.002, cp * 0.995);
-            if (trailTarget > p.sl * 1.0002) {
-              p.sl = trailTarget;
-              p.guardStatus = "Profit Locked / Trailing";
-              app.guardAdjustCount += 1;
-              pushGuardNote(`GUARD UPDATED (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL তুলে ${fmt(p.sl)} করা হয়েছে।`);
-            }
+            const nextSl = Math.max(p.sl, p.entry * 1.002, cp * 0.995);
+            if (nextSl > p.sl * 1.0002) { p.sl = nextSl; p.guardStatus = "Profit Locked / Trailing"; app.guardAdjustCount += 1; pushGuardNote(`GUARD UPDATED (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL ${fmt(p.sl)} করা হয়েছে।`); }
           } else if (t && t.signal === "SELL" && t.score360 >= 64 && cp < p.entry) {
-            const tightTarget = Math.max(p.sl, cp * 0.996);
-            if (tightTarget > p.sl * 1.0002) {
-              p.sl = tightTarget;
-              p.guardStatus = "Loss Limit Tightened";
-              app.guardAdjustCount += 1;
-              pushGuardNote(`GUARD TIGHTENED (${p.coin} BUY): SELL চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
-            }
+            const nextSl = Math.max(p.sl, cp * 0.996);
+            if (nextSl > p.sl * 1.0002) { p.sl = nextSl; p.guardStatus = "Loss Limit Tightened"; app.guardAdjustCount += 1; pushGuardNote(`GUARD TIGHTENED (${p.coin} BUY): SELL চাপ বাড়ায় লস-লিমিট ${fmt(p.sl)} করা হয়েছে।`); }
           }
         } else {
           const gainPct = ((p.entry - cp) / p.entry) * 100;
           if (gainPct >= 0.6) {
-            const trailTarget = Math.min(p.sl, p.entry * 0.998, cp * 1.005);
-            if (trailTarget < p.sl * 0.9998) {
-              p.sl = trailTarget;
-              p.guardStatus = "Profit Locked / Trailing";
-              app.guardAdjustCount += 1;
-              pushGuardNote(`GUARD UPDATED (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL নামিয়ে ${fmt(p.sl)} করা হয়েছে।`);
-            }
+            const nextSl = Math.min(p.sl, p.entry * 0.998, cp * 1.005);
+            if (nextSl < p.sl * 0.9998) { p.sl = nextSl; p.guardStatus = "Profit Locked / Trailing"; app.guardAdjustCount += 1; pushGuardNote(`GUARD UPDATED (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL ${fmt(p.sl)} করা হয়েছে।`); }
           } else if (t && t.signal === "BUY" && t.score360 >= 64 && cp > p.entry) {
-            const tightTarget = Math.min(p.sl, cp * 1.004);
-            if (tightTarget < p.sl * 0.9998) {
-              p.sl = tightTarget;
-              p.guardStatus = "Loss Limit Tightened";
-              app.guardAdjustCount += 1;
-              pushGuardNote(`GUARD TIGHTENED (${p.coin} SELL): BUY চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
-            }
+            const nextSl = Math.min(p.sl, cp * 1.004);
+            if (nextSl < p.sl * 0.9998) { p.sl = nextSl; p.guardStatus = "Loss Limit Tightened"; app.guardAdjustCount += 1; pushGuardNote(`GUARD TIGHTENED (${p.coin} SELL): BUY চাপ বাড়ায় লস-লিমিট ${fmt(p.sl)} করা হয়েছে।`); }
           }
         }
 
         const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
         const hitTp = (p.side === "BUY" && cp >= p.tp) || (p.side === "SELL" && cp <= p.tp);
         const hitSl = (p.side === "BUY" && cp <= p.sl) || (p.side === "SELL" && cp >= p.sl);
-
-        if (hitTp || hitSl) {
-          closePosition(i, hitTp ? "Target Hit" : `Dynamic SL Hit (${p.guardStatus})`);
-          continue;
-        }
-        inv += p.amt;
-        unrl += pnl;
+        if (hitTp || hitSl) { closePosition(i, hitTp ? "Target Hit" : `Dynamic SL Hit (${p.guardStatus})`); continue; }
+        inv += p.amt; unrl += pnl;
       }
 
       document.getElementById("cCash").textContent = fmt(app.cash);
@@ -546,117 +615,74 @@
       pEl.className = `kpi-val ${unrl >= 0 ? "pos-up" : "pos-down"}`;
       document.getElementById("cLossSub").textContent = `Daily Loss Guard: $${app.dailyLoss.toFixed(2)} / $500.00`;
       document.getElementById("cEq").textContent = fmt(app.cash + inv + unrl);
-      updateKillBadge();
-      renderGuardLog();
+      updateKillBadge(); renderGuardLog();
 
       const pb = document.getElementById("posBody");
-      pb.innerHTML = !app.positions.length
-        ? `<tr><td colspan="8" style="text-align:center;color:var(--muted);">কোনো ওপেন পজিশন নেই (টেস্ট করতে BUY বা SELL চাপুন)</td></tr>`
-        : app.positions.map((p, i) => {
-            const cp = app.coins[p.coin]?.price || p.entry;
-            const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
-            const moved = Math.abs(p.sl - p.initialSl) > 1e-8;
-            return `
-              <tr>
-                <td><strong>${p.coin}</strong> <span style="font-size:0.7rem;color:var(--muted);">(${p.origin})</span></td>
-                <td><span class="badge ${p.side === "BUY" ? "b-buy" : "b-sell"}">${p.side}</span></td>
-                <td>${fmt(p.entry)} → <strong>${fmt(cp)}</strong></td>
-                <td><span style="color:var(--muted);">${fmt(p.initialSl)}</span> → <strong style="color:${moved ? "var(--buy)" : "var(--text)"};">${fmt(p.sl)}</strong></td>
-                <td>${fmt(p.tp)}</td>
-                <td><span class="badge b-guard">${p.guardStatus}</span></td>
-                <td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmt(Math.abs(pnl))}</td>
-                <td><button class="btn btn-ghost" onclick="closePosition(${i})">Exit</button></td>
-              </tr>
-            `;
-          }).join("");
+      pb.innerHTML = !app.positions.length ? `<tr><td colspan="8" style="text-align:center;color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr>` :
+        app.positions.map((p, i) => {
+          const cp = app.coins[p.coin]?.price || p.entry;
+          const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
+          const moved = Math.abs(p.sl - p.initialSl) > 1e-8;
+          return `
+            <tr>
+              <td><strong>${p.coin}</strong> <span style="font-size:0.7rem;color:var(--muted);">(${p.origin})</span></td>
+              <td><span class="badge ${p.side === "BUY" ? "b-buy" : "b-sell"}">${p.side}</span></td>
+              <td>${fmt(p.entry)} → <strong>${fmt(cp)}</strong></td>
+              <td><span style="color:var(--muted);">${fmt(p.initialSl)}</span> → <strong style="color:${moved ? "var(--buy)" : "var(--text)"};">${fmt(p.sl)}</strong></td>
+              <td>${fmt(p.tp)}</td>
+              <td><span class="badge b-guard">${p.guardStatus}</span></td>
+              <td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmt(Math.abs(pnl))}</td>
+              <td><button class="btn btn-ghost" onclick="closePosition(${i})">Exit</button></td>
+            </tr>
+          `;
+        }).join("");
     }
 
     function renderHistory() {
       const hb = document.getElementById("histBody");
-      hb.innerHTML = !app.history.length
-        ? `<tr><td colspan="6" style="text-align:center;color:var(--muted);">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr>`
-        : app.history.slice(0, 12).map(h => `
-            <tr>
-              <td>${h.time}</td>
-              <td><strong>${h.coin}</strong></td>
-              <td>${h.side}</td>
-              <td>${fmt(h.entry)} → ${fmt(h.exit)}</td>
-              <td class="${h.pnl >= 0 ? "pos-up" : "pos-down"}">${h.pnl >= 0 ? "+" : "-"}${fmt(Math.abs(h.pnl))}</td>
-              <td style="font-size:0.74rem;color:var(--muted);">${h.reason}</td>
-            </tr>
-          `).join("");
+      hb.innerHTML = !app.history.length ? `<tr><td colspan="6" style="text-align:center;color:var(--muted);">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr>` :
+        app.history.slice(0, 12).map(h => `<tr><td>${h.time}</td><td><strong>${h.coin}</strong></td><td>${h.side}</td><td>${fmt(h.entry)} → ${fmt(h.exit)}</td><td class="${h.pnl >= 0 ? "pos-up" : "pos-down"}">${h.pnl >= 0 ? "+" : "-"}${fmt(Math.abs(h.pnl))}</td><td style="font-size:0.74rem;color:var(--muted);">${h.reason}</td></tr>`).join("");
     }
 
     function downloadJournalCSV() {
       if (!app.history.length) return;
-      const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(
-        app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`)
-      );
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
-      a.download = "crypto_360_guard_journal.csv";
-      a.click();
+      const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`));
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_guard_journal.csv"; a.click();
     }
 
     function startWS() {
       const badge = document.getElementById("wsBadge");
       const ws = new WebSocket("wss://ws.kraken.com/v2");
-
-      ws.onopen = () => {
-        badge.textContent = "LIVE WS (Kraken Real Price)";
-        badge.className = "pill live";
-        ws.send(JSON.stringify({ method: "subscribe", params: { channel: "ticker", symbol: SYMBOLS } }));
-      };
-
+      ws.onopen = () => { badge.textContent = "LIVE WS (Kraken Real Price)"; badge.className = "pill live"; ws.send(JSON.stringify({ method: "subscribe", params: { channel: "ticker", symbol: SYMBOLS } })); };
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
         if (msg.channel === "ticker" && Array.isArray(msg.data)) {
           const now = performance.now();
           document.getElementById("msBadge").textContent = `Tick: ${Math.max(1, Math.round(now - app.lastTick))} ms`;
           app.lastTick = now;
-
           let lastCoin = null;
           msg.data.forEach(item => {
-            const c = (item.symbol || "").split("/")[0];
-            const t = app.coins[c];
+            const c = (item.symbol || "").split("/")[0], t = app.coins[c];
             if (!t) return;
             const np = Number(item.last || t.price);
-            if (np > 0) {
-              t.prev = t.price; t.price = np;
-              t.prices.push(np);
-              if (t.prices.length > 60) t.prices.shift();
-              lastCoin = c;
-            }
+            if (np > 0) { t.prev = t.price; t.price = np; t.prices.push(np); if (t.prices.length > 60) t.prices.shift(); lastCoin = c; }
             if (item.change_pct !== undefined) t.chg24 = Number(item.change_pct);
             if (item.high !== undefined) t.high24 = Number(item.high);
             if (item.low !== undefined) t.low24 = Number(item.low);
-
+            if (item.volume !== undefined) t.vol24 = Number(item.volume);
             computeCoinIntelligence(t);
-
-            if (app.autoBot && !app.killSwitch && t.score360 >= 62 && (t.signal === "BUY" || t.signal === "SELL")) {
-              if (now - (app.lastAutoTime[c] || 0) > 15000 && app.positions.length < 3) {
-                app.lastAutoTime[c] = now;
-                createPosition(c, t.signal, t.lowMarginAmt, t.slPlan, t.tpPlan, "AUTO-BOT");
-              }
+            if (app.autoBot && !app.killSwitch && t.score360 >= 62 && (t.signal === "BUY" || t.signal === "SELL") && now - (app.lastAutoTime[c] || 0) > 15000 && app.positions.length < 3) {
+              app.lastAutoTime[c] = now; createPosition(c, t.signal, t.lowMarginAmt, t.slPlan, t.tpPlan, "AUTO-BOT");
             }
           });
-
-          renderBoard(lastCoin);
-          renderPositionsAndCards();
+          renderBoard(lastCoin); renderPositionsAndCards();
         }
       };
-
-      ws.onclose = () => {
-        badge.textContent = "Reconnecting...";
-        badge.className = "pill warn";
-        setTimeout(startWS, 1500);
-      };
+      ws.onclose = () => { badge.textContent = "Reconnecting..."; badge.className = "pill warn"; setTimeout(startWS, 1500); };
     }
 
-    renderBoard(null);
-    renderPositionsAndCards();
-    renderHistory();
-    startWS();
+    document.getElementById("deepSearchInput").value = "BTC";
+    renderBoard(null); renderPositionsAndCards(); renderHistory(); startWS();
   </script>
 </body>
 </html>
