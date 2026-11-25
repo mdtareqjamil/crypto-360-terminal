@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° AI Crypto Demo Terminal — Smart Auto &amp; Manual Guard</title>
+  <title>360° AI Crypto Demo Terminal — Visible Dynamic Guard</title>
   <style>
     :root {
       --bg: #060a12;
@@ -48,7 +48,7 @@
     .kpi-sub { font-size: 0.74rem; color: var(--muted); margin-top: 4px; }
 
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
     th, td { padding: 9px 8px; text-align: left; border-bottom: 1px solid rgba(30,47,77,0.65); white-space: nowrap; }
     th { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; }
     tbody tr.selectable-row { cursor: pointer; transition: background-color 0.15s ease; }
@@ -59,20 +59,21 @@
     .flash-up { background-color: rgba(0, 230, 118, 0.28) !important; color: var(--buy) !important; }
     .flash-down { background-color: rgba(255, 61, 87, 0.28) !important; color: var(--sell) !important; }
 
-    .badge { display: inline-block; padding: 3px 9px; border-radius: 7px; font-weight: 800; font-size: 0.73rem; }
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 7px; font-weight: 800; font-size: 0.72rem; }
     .b-buy { color: var(--buy); background: var(--buy-bg); border: 1px solid rgba(0,230,118,0.4); }
     .b-sell { color: var(--sell); background: var(--sell-bg); border: 1px solid rgba(255,61,87,0.4); }
     .b-hold { color: var(--hold); background: var(--hold-bg); border: 1px solid rgba(255,193,7,0.4); }
+    .b-guard { color: var(--accent); background: rgba(56,189,248,0.14); border: 1px solid rgba(56,189,248,0.4); }
 
     .pos-up { color: var(--buy); font-weight: 700; }
     .pos-down { color: var(--sell); font-weight: 700; }
 
-    .box-list { display: flex; flex-direction: column; gap: 8px; max-height: 360px; overflow-y: auto; }
+    .box-list { display: flex; flex-direction: column; gap: 8px; max-height: 350px; overflow-y: auto; }
     .box-item { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 9px; padding: 10px 12px; font-size: 0.8rem; }
     .box-item.buy { border-left-color: var(--buy); }
     .box-item.sell { border-left-color: var(--sell); }
 
-    .auto-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+    .auto-plan-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-top: 8px; }
     .plan-chip { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
     .plan-chip .k { font-size: 0.7rem; color: var(--muted); }
     .plan-chip .v { font-size: 0.88rem; font-weight: 800; margin-top: 2px; }
@@ -87,19 +88,18 @@
 
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ 360° AI Crypto Demo Terminal — Smart Auto &amp; Manual Guard</h1>
-      <p>কোনো API Key বা চার্ট ছাড়াই Kraken-এর আসল লাইভ দাম, ক্লিকে অটো-প্ল্যান, Manual/Auto ফলো, ডাইনামিক লস-লিমিট ও ফিউচার অ্যালার্ট</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Visible Dynamic Guard</h1>
+      <p>রানিং পজিশনে Dynamic Guard কী করছে (Watch / Profit Lock / Tightened SL) তা প্রতিটি ট্রেডের পাশে ও লগে সরাসরি দেখা যাবে</p>
     </div>
     <div class="row-flex">
       <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
-      <span id="msBadge" class="pill">Tick: -- ms</span>
+      <span id="guardPulseBadge" class="pill live">Dynamic Guard: Active (0 Adjustments)</span>
       <span id="ksBadge" class="pill live">Kill-Switch: Safe ($0/$500)</span>
       <button id="autoToggleBtn" class="btn btn-accent" onclick="toggleAutoBot()">AUTO ACTION: OFF</button>
       <button class="btn btn-ghost" onclick="resetAccount()">Reset ($10,000)</button>
     </div>
   </div>
 
-  <!-- 1. Account Summary (4 Cards) -->
   <div class="grid-4">
     <div class="card">
       <div class="kpi-label">Available Cash Balance</div>
@@ -119,28 +119,26 @@
     <div class="card">
       <div class="kpi-label">Current Balance (Equity)</div>
       <div id="cEq" class="kpi-val">$10,000.00</div>
-      <div id="cBotSub" class="kpi-sub">Bot Guard: Active on Auto &amp; Manual</div>
+      <div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div>
     </div>
   </div>
 
-  <!-- 2. Clickable Live Market Board + Future Good Possibility Alerts -->
   <div class="grid-2">
     <div class="card">
       <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
-        <h2 style="font-size:0.98rem;">📊 লাইভ মার্কেট বোর্ড (যেকোনো কয়েনে ক্লিক করুন)</h2>
-        <span style="font-size:0.74rem; color:var(--accent);">ক্লিক করলে ডান/নিচে অটো-প্ল্যান ও কারণ আসবে</span>
+        <h2 style="font-size:0.98rem;">📊 লাইভ মার্কেট বোর্ড (ক্লিকে অটো-প্ল্যান)</h2>
+        <span id="msBadge" style="font-size:0.74rem; color:var(--accent);">Tick: -- ms</span>
       </div>
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Coin</th>
-              <th>Live Price (Real)</th>
+              <th>Live Price</th>
               <th>24h %</th>
-              <th>24h High/Low</th>
               <th>360° Score</th>
-              <th>Suggested Side</th>
-              <th>Quick ($500)</th>
+              <th>Signal</th>
+              <th>Quick ($300)</th>
             </tr>
           </thead>
           <tbody id="mktBody"></tbody>
@@ -149,16 +147,39 @@
     </div>
 
     <div class="card">
-      <h2 style="font-size:0.98rem; margin-bottom:8px;">🔮 Future Good Possibility Alerts (সম্ভাব্য ট্রেড)</h2>
-      <div id="futureAlertBox" class="box-list"></div>
+      <h2 style="font-size:0.98rem; margin-bottom:8px;">🛡️ Dynamic Guard লাইভ অ্যাক্টিভিটি ও লগ</h2>
+      <div id="guardLogBox" class="box-list"></div>
     </div>
   </div>
 
-  <!-- 3. Selected Coin Full Auto-Generated Plan + Manual/Bot Order -->
+  <div class="card" style="margin-bottom:12px;">
+    <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
+      <h2 style="font-size:0.98rem;">📌 চলমান পজিশন — Dynamic SL পরিবর্তনের সরাসরি অবস্থা</h2>
+      <span style="font-size:0.74rem; color:var(--muted);">Initial SL বনাম Current SL এবং Guard Status নিচে দেখুন</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Coin &amp; Mode</th>
+            <th>Side</th>
+            <th>Entry / Current</th>
+            <th>Initial SL → Dynamic SL</th>
+            <th>Target</th>
+            <th>Guard Status</th>
+            <th>Live PnL</th>
+            <th>Exit</th>
+          </tr>
+        </thead>
+        <tbody id="posBody"><tr><td colspan="8" style="text-align:center; color:var(--muted);">কোনো ওপেন পজিশন নেই (টেস্ট করতে BUY বা SELL চাপুন)</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <div class="grid-2">
     <div class="card">
       <div class="row-flex" style="justify-content:space-between;">
-        <h2 style="font-size:0.98rem;">🎯 সিলেক্টেড কয়েনের অটো-জেনারেটেড ট্রেড প্ল্যান ও Manual অর্ডার</h2>
+        <h2 style="font-size:0.98rem;">🎯 সিলেক্টেড কয়েনের অটো-প্ল্যান ও Manual অর্ডার</h2>
         <div style="width:150px;">
           <select id="studyCoin" onchange="selectCoin(this.value)">
             <option value="BTC">BTC/USD</option>
@@ -170,89 +191,35 @@
           </select>
         </div>
       </div>
-
       <div id="autoPlanCard" class="box-item" style="margin-top:10px;"></div>
-
       <div class="form-grid">
-        <div>
-          <label>Direction</label>
-          <select id="mDir">
-            <option value="BUY">BUY (Long)</option>
-            <option value="SELL">SELL (Short)</option>
-          </select>
-        </div>
-        <div>
-          <label>Low-Margin Amount ($)</label>
-          <input id="mAmt" type="number" min="10" step="10" value="300" />
-        </div>
-        <div>
-          <label>Stop-Loss ($)</label>
-          <input id="mSl" type="number" step="0.0001" />
-        </div>
-        <div>
-          <label>Auto-Sell Target ($)</label>
-          <input id="mTp" type="number" step="0.0001" />
-        </div>
+        <div><label>Direction</label><select id="mDir"><option value="BUY">BUY (Long)</option><option value="SELL">SELL (Short)</option></select></div>
+        <div><label>Low-Margin ($)</label><input id="mAmt" type="number" min="10" step="10" value="300" /></div>
+        <div><label>Stop-Loss ($)</label><input id="mSl" type="number" step="0.0001" /></div>
+        <div><label>Target ($)</label><input id="mTp" type="number" step="0.0001" /></div>
       </div>
       <div class="row-flex" style="margin-top:10px;">
-        <button class="btn btn-accent" onclick="applyAutoPlanToInputs(true)">⚡ Auto-Generate SL / Margin / Target</button>
-        <button class="btn btn-buy" onclick="submitManualOrder()">✅ Confirm Order (Bot Managed)</button>
+        <button class="btn btn-accent" onclick="applyAutoPlanToInputs(true)">⚡ Auto-Generate Plan</button>
+        <button class="btn btn-buy" onclick="submitManualOrder()">✅ Confirm Order</button>
         <span id="mMsg" style="font-size:0.78rem; color:var(--muted);"></span>
       </div>
     </div>
 
     <div class="card">
-      <h2 style="font-size:0.98rem; margin-bottom:8px;">🧠 রানিং ট্রেড ডাইনামিক লস-লিমিট ও কারণ লগ</h2>
-      <div id="guardLogBox" class="box-list"></div>
-    </div>
-  </div>
-
-  <!-- 4. Active Positions + Trade Journal CSV -->
-  <div class="grid-equal">
-    <div class="card">
-      <h2 style="font-size:0.98rem; margin-bottom:8px;">📌 চলমান পজিশন (Auto &amp; Manual — Dynamic SL/TP)</h2>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Coin</th>
-              <th>Type</th>
-              <th>Entry</th>
-              <th>Dynamic SL</th>
-              <th>Target</th>
-              <th>Live PnL</th>
-              <th>Close</th>
-            </tr>
-          </thead>
-          <tbody id="posBody"><tr><td colspan="7" style="text-align:center; color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="row-flex" style="justify-content:space-between; margin-bottom:8px;">
-        <h2 style="font-size:0.98rem;">📒 ট্রেড জার্নাল (CSV Export)</h2>
+        <h2 style="font-size:0.98rem;">📒 ট্রেড জার্নাল (CSV)</h2>
         <button class="btn btn-ghost" onclick="downloadJournalCSV()">📥 Download CSV</button>
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Coin</th>
-              <th>Side</th>
-              <th>Entry → Exit</th>
-              <th>PnL ($)</th>
-              <th>Exit Reason</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Time</th><th>Coin</th><th>Side</th><th>Entry → Exit</th><th>PnL ($)</th><th>Reason</th></tr></thead>
           <tbody id="histBody"><tr><td colspan="6" style="text-align:center; color:var(--muted);">এখনো কোনো ট্রেড ক্লোজ হয়নি</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — দাম Kraken লাইভ ফিড থেকে এলেও ট্রেডিং সিগন্যাল ও ডাইনামিক SL বাস্তব বাজারে নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — ডাইনামিক SL ও সিগন্যাল বাস্তব বাজারে শতভাগ নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
     const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
@@ -265,20 +232,21 @@
       killSwitch: false,
       autoBot: false,
       selectedCoin: "BTC",
+      guardAdjustCount: 0,
+      lastGuardCheckText: "Waiting for live price...",
       lastAutoTime: {},
       lastTick: performance.now(),
-      guardNotes: ["বট প্রস্তুত: Auto Action বা Manual অর্ডার দিলে রানিং অবস্থায় প্রাইস-মোমেন্টাম ও রেঞ্জ অনুযায়ী লস-লিমিট অ্যাডজাস্ট হবে।"],
+      guardNotes: ["Dynamic Guard চালু আছে: ট্রেড ওপেন হলে প্রতি লাইভ আপডেটে প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
       coins: {}
     };
 
     SYMBOLS.forEach(pair => {
       const c = pair.split("/")[0];
       app.coins[c] = {
-        coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0, vol24: 0,
+        coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0,
         prices: [], signal: "HOLD", score360: 50,
         directionPlan: "BUY", lowMarginAmt: 300, slPlan: 0, tpPlan: 0,
-        futurePossibility: "Waiting for setup",
-        whyText: "লাইভ মার্কেট ডেটা সংগ্রহ হচ্ছে..."
+        whyText: "লাইভ ডেটা সংগ্রহ হচ্ছে..."
       };
     });
 
@@ -292,99 +260,78 @@
     function pushGuardNote(txt) {
       const stamp = new Date().toLocaleTimeString();
       app.guardNotes.unshift(`[${stamp}] ${txt}`);
-      if (app.guardNotes.length > 18) app.guardNotes.pop();
+      if (app.guardNotes.length > 20) app.guardNotes.pop();
     }
 
     function computeCoinIntelligence(t) {
       const s = t.prices;
-      if (s.length < 5 || t.price <= 0) {
-        t.signal = "HOLD"; t.score360 = 50;
-        t.directionPlan = "BUY";
+      if (s.length < 4 || t.price <= 0) {
+        t.signal = "HOLD"; t.score360 = 50; t.directionPlan = "BUY";
         t.lowMarginAmt = Math.max(50, Math.round(app.cash * 0.03));
-        t.futurePossibility = "প্রাথমিক টিক সংগ্রহ চলছে";
-        t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি বিশ্লেষণ শুরু হচ্ছে।";
+        t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি সংগ্রহ হচ্ছে...";
         return;
       }
 
-      const fastLen = Math.min(4, s.length);
-      const slowLen = Math.min(18, s.length);
-      const fastAvg = s.slice(-fastLen).reduce((a, b) => a + b, 0) / fastLen;
-      const slowAvg = s.slice(-slowLen).reduce((a, b) => a + b, 0) / slowLen;
+      const fast = s.slice(-Math.min(4, s.length)).reduce((a, b) => a + b, 0) / Math.min(4, s.length);
+      const slow = s.slice(-Math.min(18, s.length)).reduce((a, b) => a + b, 0) / Math.min(18, s.length);
       const momPct = ((t.price - s[0]) / s[0]) * 100;
-
       const range24 = Math.max(t.high24 - t.low24, t.price * 0.015);
-      const rangePos = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
-      const volEst = Math.max(t.price * 0.008, range24 * 0.018);
+      const volEst = Math.max(t.price * 0.006, range24 * 0.014);
 
       let bull = 48, bear = 48;
-      if (fastAvg > slowAvg) bull += 15; else bear += 15;
-      if (momPct > 0.05) bull += 12; else if (momPct < -0.05) bear += 12;
+      if (fast > slow) bull += 15; else bear += 15;
+      if (momPct > 0.04) bull += 12; else if (momPct < -0.04) bear += 12;
       if (t.chg24 > 1.0) bull += 7; else if (t.chg24 < -1.0) bear += 7;
-      if (rangePos < 0.35 && momPct >= 0) bull += 6;
-      if (rangePos > 0.75 && momPct <= 0) bear += 6;
 
-      // Low margin suggestion: smaller allocation when volatility/range is stretched
-      const riskFactor = (momPct > 0.6 || momPct < -0.6) ? 0.025 : 0.04;
-      t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * riskFactor), 1000));
+      app.cash * 0.03;
+      t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
 
       if (bull >= bear && bull >= 60) {
-        t.signal = "BUY";
-        t.directionPlan = "BUY";
-        t.score360 = Math.min(92, bull);
-        t.slPlan = Math.max(0.000001, t.price - volEst * 0.9);
+        t.signal = "BUY"; t.directionPlan = "BUY"; t.score360 = Math.min(92, bull);
+        t.slPlan = Math.max(0.000001, t.price - volEst);
         t.tpPlan = t.price + volEst * 1.8;
-        t.futurePossibility = t.score360 >= 68
-          ? `উচ্চ সম্ভাবনা: স্বল্পমেয়াদী BUY (${t.score360}%) — সাপোর্ট/মোমেন্টাম অনুকূলে`
-          : `ভালো সম্ভাবনা: পুলব্যাকে BUY (${t.score360}%)`;
-        t.whyText = `স্বল্পমেয়াদী গড় দীর্ঘমেয়াদী গড়ের ওপরে এবং মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%। লো-মার্জিন হিসেবে কম ঝুঁকিতে টাইট স্টপ-লস (${fmt(t.slPlan)}) ও টার্গেট (${fmt(t.tpPlan)}) সেট করা হয়েছে।`;
+        t.whyText = `BUY অনুকূল (${t.score360}%): স্বল্পমেয়াদী গড় ও মোমেন্টাম ${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%।`;
       } else if (bear > bull && bear >= 60) {
-        t.signal = "SELL";
-        t.directionPlan = "SELL";
-        t.score360 = Math.min(92, bear);
-        t.slPlan = t.price + volEst * 0.9;
+        t.signal = "SELL"; t.directionPlan = "SELL"; t.score360 = Math.min(92, bear);
+        t.slPlan = t.price + volEst;
         t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
-        t.futurePossibility = t.score360 >= 68
-          ? `উচ্চ সম্ভাবনা: স্বল্পমেয়াদী SELL (${t.score360}%) — নিম্নমুখী চাপ সক্রিয়`
-          : `ভালো সম্ভাবনা: রেজিস্ট্যান্সে SELL (${t.score360}%)`;
-        t.whyText = `নিম্নমুখী মোমেন্টাম (${momPct.toFixed(2)}%) ও 24h পরিবর্তন (${t.chg24.toFixed(2)}%) SELL দিককে সমর্থন দিচ্ছে। লো-মার্জিন সাইজ ও সুরক্ষিত SL (${fmt(t.slPlan)}) গণনা করা হয়েছে।`;
+        t.whyText = `SELL অনুকূল (${t.score360}%): নিম্নমুখী চাপ ও মোমেন্টাম ${momPct.toFixed(2)}%।`;
       } else {
-        t.signal = "HOLD";
-        t.directionPlan = fastAvg >= slowAvg ? "BUY" : "SELL";
+        t.signal = "HOLD"; t.directionPlan = fast >= slow ? "BUY" : "SELL";
         t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
         t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
         t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
-        t.futurePossibility = `ওয়াচ লিস্ট: ব্রেকআউটের অপেক্ষায় (${t.score360}%) — সম্ভাব্য দিক ${t.directionPlan}`;
-        t.whyText = `বাজার এখন কনসোলিডেশনে আছে (${momPct >= 0 ? "+" : ""}${momPct.toFixed(2)}%)। এখনই বড় পজিশন না নিয়ে কম মার্জিনে সতর্ক থাকা বা ব্রেকআউটের অপেক্ষা করা যুক্তিসঙ্গত।`;
+        t.whyText = `WATCH (${t.score360}%): রেঞ্জিং অবস্থা; লো-মার্জিন প্ল্যান ${t.directionPlan} প্রস্তুত।`;
       }
     }
 
     function selectCoin(coin) {
+      if (!app.coins[coin]) return;
       app.selectedCoin = coin;
       document.getElementById("studyCoin").value = coin;
       applyAutoPlanToInputs(true);
       renderBoard(null);
     }
 
-    function applyAutoPlanToInputs(overwriteValues = true) {
+    function applyAutoPlanToInputs(overwrite = true) {
       const t = app.coins[app.selectedCoin];
       if (!t) return;
-      const badgeCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
+      const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
       document.getElementById("autoPlanCard").className = `box-item ${t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "")}`;
       document.getElementById("autoPlanCard").innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;">
+        <div style="display:flex;justify-content:space-between;font-weight:800;">
           <span>${t.coin}/USD — Live: ${fmt(t.price)}</span>
-          <span class="badge ${badgeCls}">${t.signal} (${t.score360}%)</span>
+          <span class="badge ${bCls}">${t.signal} (${t.score360}%)</span>
         </div>
-        <div style="color:var(--muted);font-size:0.76rem;margin-top:5px;line-height:1.4;">${t.whyText}</div>
+        <div style="color:var(--muted);font-size:0.76rem;margin-top:4px;">${t.whyText}</div>
         <div class="auto-plan-grid">
-          <div class="plan-chip"><div class="k">লাভজনক দিক</div><div class="v">${t.directionPlan}</div></div>
-          <div class="plan-chip"><div class="k">Auto Low-Margin</div><div class="v">$${t.lowMarginAmt}</div></div>
-          <div class="plan-chip"><div class="k">Auto Stop-Loss</div><div class="v">${fmt(t.slPlan)}</div></div>
-          <div class="plan-chip"><div class="k">Auto Target</div><div class="v">${fmt(t.tpPlan)}</div></div>
+          <div class="plan-chip"><div class="k">দিক</div><div class="v">${t.directionPlan}</div></div>
+          <div class="plan-chip"><div class="k">Low-Margin</div><div class="v">$${t.lowMarginAmt}</div></div>
+          <div class="plan-chip"><div class="k">Stop-Loss</div><div class="v">${fmt(t.slPlan)}</div></div>
+          <div class="plan-chip"><div class="k">Target</div><div class="v">${fmt(t.tpPlan)}</div></div>
         </div>
       `;
-
-      if (overwriteValues && t.price > 0) {
+      if (overwrite && t.price > 0) {
         document.getElementById("mDir").value = t.directionPlan;
         document.getElementById("mAmt").value = t.lowMarginAmt;
         const dec = t.price >= 1 ? 4 : 6;
@@ -398,36 +345,38 @@
         app.killSwitch = true; app.autoBot = false; updateKillBadge();
         return "Kill-Switch সক্রিয়: দৈনিক লস $500 ছুঁয়েছে!";
       }
-      if (app.positions.some(p => p.coin === coin)) {
-        return `${coin}-এ ইতিমধ্যে একটি রানিং পজিশন আছে।`;
-      }
+      if (app.positions.some(p => p.coin === coin)) return `${coin}-এ ইতিমধ্যে একটি পজিশন চালু আছে।`;
       const t = app.coins[coin];
       if (!t || t.price <= 0) return "লাইভ প্রাইস এখনো আসেনি।";
-      if (isNaN(amt) || amt < 10 || amt > app.cash) return "অবৈধ বা অপর্যাপ্ত ক্যাশ ব্যালেন্স।";
+      if (isNaN(amt) || amt < 10 || amt > app.cash) return "অপর্যাপ্ত ব্যালেন্স।";
 
       const entry = t.price;
       const qty = amt / entry;
-      const defaultGap = Math.max(entry * 0.008, (t.high24 - t.low24) * 0.015 || entry * 0.008);
-      const sl = (slVal && slVal > 0) ? slVal : (side === "BUY" ? entry - defaultGap : entry + defaultGap);
-      const tp = (tpVal && tpVal > 0) ? tpVal : (side === "BUY" ? entry + defaultGap * 1.8 : entry - defaultGap * 1.8);
+      const gap = Math.max(entry * 0.005, (t.high24 - t.low24) * 0.01 || entry * 0.005);
+      const sl = (slVal && slVal > 0) ? slVal : (side === "BUY" ? entry - gap : entry + gap);
+      const tp = (tpVal && tpVal > 0) ? tpVal : (side === "BUY" ? entry + gap * 1.8 : entry - gap * 1.8);
 
       app.cash -= amt;
       app.positions.push({
-        coin, side, entry, qty, amt, sl, tp, origin,
-        peakPrice: entry, troughPrice: entry
+        coin, side, entry, qty, amt,
+        initialSl: sl, sl, tp, origin,
+        guardStatus: "Watching Price & Momentum",
+        lastActionNote: "Opened & guarded"
       });
-      pushGuardNote(`${origin}: ${coin} ${side} @ ${fmt(entry)} | Margin $${amt} | Initial SL ${fmt(sl)} | Target ${fmt(tp)}`);
+      pushGuardNote(`${origin} Opened: ${coin} ${side} @ ${fmt(entry)} | Initial SL ${fmt(sl)} | TP ${fmt(tp)}`);
       renderPositionsAndCards();
-      return `${coin} ${side} অর্ডার চালু হয়েছে (${origin})!`;
+      return `${coin} ${side} ট্রেড শুরু হয়েছে — Dynamic Guard মনিটর করছে!`;
     }
 
     function submitManualOrder() {
-      const coin = document.getElementById("studyCoin").value;
-      const side = document.getElementById("mDir").value;
-      const amt = parseFloat(document.getElementById("mAmt").value);
-      const sl = parseFloat(document.getElementById("mSl").value);
-      const tp = parseFloat(document.getElementById("mTp").value);
-      const msg = createPosition(coin, side, amt, sl, tp, "MANUAL+BOT");
+      const msg = createPosition(
+        document.getElementById("studyCoin").value,
+        document.getElementById("mDir").value,
+        parseFloat(document.getElementById("mAmt").value),
+        parseFloat(document.getElementById("mSl").value),
+        parseFloat(document.getElementById("mTp").value),
+        "MANUAL+GUARD"
+      );
       document.getElementById("mMsg").textContent = msg;
     }
 
@@ -441,13 +390,10 @@
         app.dailyLoss += Math.abs(pnl);
         if (app.dailyLoss >= 500) {
           app.killSwitch = true; app.autoBot = false; updateKillBadge();
-          pushGuardNote("KILL-SWITCH TRIGGERED: দৈনিক লস $500 ছুঁয়েছে, সব অটো ট্রেড বন্ধ।");
+          pushGuardNote("KILL-SWITCH ACTIVE: দৈনিক লস $500 ছুঁয়েছে।");
         }
       }
-      app.history.unshift({
-        time: new Date().toLocaleTimeString(),
-        coin: p.coin, side: p.side, entry: p.entry, exit: cp, pnl, reason
-      });
+      app.history.unshift({ time: new Date().toLocaleTimeString(), coin: p.coin, side: p.side, entry: p.entry, exit: cp, pnl, reason });
       app.positions.splice(idx, 1);
       renderPositionsAndCards();
       renderHistory();
@@ -459,9 +405,7 @@
       const btn = document.getElementById("autoToggleBtn");
       btn.textContent = `AUTO ACTION: ${app.autoBot ? "ON" : "OFF"}`;
       btn.className = app.autoBot ? "btn btn-buy" : "btn btn-accent";
-      pushGuardNote(app.autoBot
-        ? "AUTO ACTION ON: বট আপনার নিয়ম ও স্কোর (≥62%) অনুযায়ী নিজে থেকেই ট্রেড ও লস-লিমিট নিয়ন্ত্রণ করবে।"
-        : "AUTO ACTION OFF: অটো এন্ট্রি বন্ধ করা হয়েছে; রানিং পজিশনের সুরক্ষা সক্রিয় আছে।");
+      pushGuardNote(app.autoBot ? "AUTO ACTION ON: অটো ট্রেড ও Dynamic Guard সক্রিয়।" : "AUTO ACTION OFF: নতুন অটো এন্ট্রি বন্ধ।");
       renderGuardLog();
     }
 
@@ -477,7 +421,7 @@
     }
 
     function resetAccount() {
-      app.cash = 10000; app.positions = []; app.history = []; app.dailyLoss = 0; app.killSwitch = false; app.autoBot = false;
+      app.cash = 10000; app.positions = []; app.history = []; app.dailyLoss = 0; app.killSwitch = false; app.autoBot = false; app.guardAdjustCount = 0;
       document.getElementById("autoToggleBtn").textContent = "AUTO ACTION: OFF";
       document.getElementById("autoToggleBtn").className = "btn btn-accent";
       updateKillBadge(); renderPositionsAndCards(); renderHistory();
@@ -487,34 +431,27 @@
       const tb = document.getElementById("mktBody");
       if (!tb.children.length) {
         SYMBOLS.forEach(pair => {
-          const c = pair.split("/")[0];
-          const tr = document.createElement("tr");
-          tr.id = `tr-${c}`;
-          tr.className = "selectable-row";
-          tr.onclick = () => selectCoin(c);
+          const c = pair.split("/")[0], tr = document.createElement("tr");
+          tr.id = `tr-${c}`; tr.className = "selectable-row"; tr.onclick = () => selectCoin(c);
           tr.innerHTML = `
             <td><strong>${c}</strong></td>
             <td id="p-${c}" class="price-cell">--</td>
             <td id="c-${c}">--</td>
-            <td id="hl-${c}" style="font-size:0.74rem;color:var(--muted);">--</td>
             <td id="sc-${c}">--</td>
             <td id="sg-${c}">--</td>
             <td onclick="event.stopPropagation();">
               <div class="row-flex">
-                <button class="btn btn-buy" onclick="createPosition('${c}','BUY',300,0,0,'QUICK-LOW-MARGIN')">BUY</button>
-                <button class="btn btn-sell" onclick="createPosition('${c}','SELL',300,0,0,'QUICK-LOW-MARGIN')">SELL</button>
+                <button class="btn btn-buy" onclick="createPosition('${c}','BUY',300,0,0,'QUICK-GUARD')">BUY</button>
+                <button class="btn btn-sell" onclick="createPosition('${c}','SELL',300,0,0,'QUICK-GUARD')">SELL</button>
               </div>
             </td>
           `;
           tb.appendChild(tr);
         });
       }
-
       SYMBOLS.forEach(pair => {
         const c = pair.split("/")[0], t = app.coins[c];
-        const row = document.getElementById(`tr-${c}`);
-        row.className = `selectable-row ${c === app.selectedCoin ? "active-coin" : ""}`;
-
+        document.getElementById(`tr-${c}`).className = `selectable-row ${c === app.selectedCoin ? "active-coin" : ""}`;
         const pEl = document.getElementById(`p-${c}`);
         pEl.textContent = fmt(t.price);
         if (c === changedCoin && t.prev > 0 && t.price !== t.prev) {
@@ -522,81 +459,69 @@
           pEl.classList.add(t.price > t.prev ? "flash-up" : "flash-down");
         }
         document.getElementById(`c-${c}`).innerHTML = `<span class="${t.chg24 >= 0 ? "pos-up" : "pos-down"}">${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%</span>`;
-        document.getElementById(`hl-${c}`).textContent = `${fmt(t.high24)} / ${fmt(t.low24)}`;
         document.getElementById(`sc-${c}`).innerHTML = `<strong>${t.score360}%</strong>`;
         const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
         document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${t.signal}</span>`;
       });
-
-      const sorted = Object.values(app.coins).sort((a, b) => b.score360 - a.score360);
-      document.getElementById("futureAlertBox").innerHTML = sorted.map(t => {
-        const cls = t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "");
-        return `
-          <div class="box-item ${cls}" style="cursor:pointer;" onclick="selectCoin('${t.coin}')">
-            <div style="display:flex;justify-content:space-between;font-weight:800;">
-              <span>${t.coin} — ${fmt(t.price)}</span>
-              <span>${t.score360}%</span>
-            </div>
-            <div style="font-size:0.77rem;margin-top:3px;">${t.futurePossibility}</div>
-            <div style="color:var(--muted);font-size:0.73rem;margin-top:2px;">প্ল্যান: ${t.directionPlan} | Margin $${t.lowMarginAmt} | SL ${fmt(t.slPlan)} | TP ${fmt(t.tpPlan)}</div>
-          </div>
-        `;
-      }).join("");
-
       applyAutoPlanToInputs(false);
     }
 
     function renderGuardLog() {
+      document.getElementById("guardPulseBadge").textContent = `Dynamic Guard: Active (${app.guardAdjustCount} Adjustments)`;
+      document.getElementById("cGuardSub").textContent = app.lastGuardCheckText;
       document.getElementById("guardLogBox").innerHTML = app.guardNotes.map(n =>
-        `<div class="box-item"><div style="font-size:0.76rem;line-height:1.4;color:var(--text);">${n}</div></div>`
+        `<div class="box-item"><div style="font-size:0.76rem;line-height:1.4;">${n}</div></div>`
       ).join("");
     }
 
     function renderPositionsAndCards() {
       let inv = 0, unrl = 0;
 
+      if (app.positions.length > 0) {
+        app.lastGuardCheckText = `Checked ${app.positions.length} active trade(s) at ${new Date().toLocaleTimeString()}`;
+      }
+
       for (let i = app.positions.length - 1; i >= 0; i--) {
         const p = app.positions[i];
         const t = app.coins[p.coin];
         const cp = t?.price || p.entry;
 
-        // Dynamic loss limit & profit protection while position is running
         if (p.side === "BUY") {
-          if (cp > p.peakPrice) p.peakPrice = cp;
           const gainPct = ((cp - p.entry) / p.entry) * 100;
-          // Lock profit & tighten loss limit as price moves up
-          if (gainPct >= 1.5) {
-            const lockedSl = p.entry * 1.006;
-            const trailSl = cp * 0.992;
-            const nextSl = Math.max(p.sl, lockedSl, trailSl);
-            if (nextSl > p.sl * 1.0005) {
-              p.sl = nextSl;
-              pushGuardNote(`Dynamic Guard (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL তুলে ${fmt(p.sl)}-এ লক করা হয়েছে।`);
+          if (gainPct >= 0.6) {
+            const trailTarget = Math.max(p.sl, p.entry * 1.002, cp * 0.995);
+            if (trailTarget > p.sl * 1.0002) {
+              p.sl = trailTarget;
+              p.guardStatus = "Profit Locked / Trailing";
+              app.guardAdjustCount += 1;
+              pushGuardNote(`GUARD UPDATED (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL তুলে ${fmt(p.sl)} করা হয়েছে।`);
             }
-          } else if (t && t.signal === "SELL" && t.score360 >= 66 && gainPct < 0) {
-            // Tighten loss limit if momentum flips strongly against BUY
-            const tightSl = Math.max(p.sl, cp * 0.994);
-            if (tightSl > p.sl) {
-              p.sl = tightSl;
-              pushGuardNote(`Dynamic Guard (${p.coin} BUY): বিপরীত চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
+          } else if (t && t.signal === "SELL" && t.score360 >= 64 && cp < p.entry) {
+            const tightTarget = Math.max(p.sl, cp * 0.996);
+            if (tightTarget > p.sl * 1.0002) {
+              p.sl = tightTarget;
+              p.guardStatus = "Loss Limit Tightened";
+              app.guardAdjustCount += 1;
+              pushGuardNote(`GUARD TIGHTENED (${p.coin} BUY): SELL চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
             }
           }
         } else {
-          if (cp < p.troughPrice) p.troughPrice = cp;
           const gainPct = ((p.entry - cp) / p.entry) * 100;
-          if (gainPct >= 1.5) {
-            const lockedSl = p.entry * 0.994;
-            const trailSl = cp * 1.008;
-            const nextSl = Math.min(p.sl, lockedSl, trailSl);
-            if (nextSl < p.sl * 0.9995) {
-              p.sl = nextSl;
-              pushGuardNote(`Dynamic Guard (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL নামিয়ে ${fmt(p.sl)}-এ লক করা হয়েছে।`);
+          if (gainPct >= 0.6) {
+            const trailTarget = Math.min(p.sl, p.entry * 0.998, cp * 1.005);
+            if (trailTarget < p.sl * 0.9998) {
+              p.sl = trailTarget;
+              p.guardStatus = "Profit Locked / Trailing";
+              app.guardAdjustCount += 1;
+              pushGuardNote(`GUARD UPDATED (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL নামিয়ে ${fmt(p.sl)} করা হয়েছে।`);
             }
-          } else if (t && t.signal === "BUY" && t.score360 >= 66 && gainPct < 0) {
-            const tightSl = Math.min(p.sl, cp * 1.006);
-            if (tightSl < p.sl) {
-              p.sl = tightSl;
-              pushGuardNote(`Dynamic Guard (${p.coin} SELL): বিপরীত চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
+          } else if (t && t.signal === "BUY" && t.score360 >= 64 && cp > p.entry) {
+            const tightTarget = Math.min(p.sl, cp * 1.004);
+            if (tightTarget < p.sl * 0.9998) {
+              p.sl = tightTarget;
+              p.guardStatus = "Loss Limit Tightened";
+              app.guardAdjustCount += 1;
+              pushGuardNote(`GUARD TIGHTENED (${p.coin} SELL): BUY চাপ বাড়ায় লস-লিমিট কমিয়ে ${fmt(p.sl)} করা হয়েছে।`);
             }
           }
         }
@@ -606,7 +531,7 @@
         const hitSl = (p.side === "BUY" && cp <= p.sl) || (p.side === "SELL" && cp >= p.sl);
 
         if (hitTp || hitSl) {
-          closePosition(i, hitTp ? "Target Hit" : "Dynamic/SL Hit");
+          closePosition(i, hitTp ? "Target Hit" : `Dynamic SL Hit (${p.guardStatus})`);
           continue;
         }
         inv += p.amt;
@@ -626,17 +551,19 @@
 
       const pb = document.getElementById("posBody");
       pb.innerHTML = !app.positions.length
-        ? `<tr><td colspan="7" style="text-align:center;color:var(--muted);">কোনো ওপেন পজিশন নেই</td></tr>`
+        ? `<tr><td colspan="8" style="text-align:center;color:var(--muted);">কোনো ওপেন পজিশন নেই (টেস্ট করতে BUY বা SELL চাপুন)</td></tr>`
         : app.positions.map((p, i) => {
             const cp = app.coins[p.coin]?.price || p.entry;
             const pnl = p.side === "BUY" ? (cp - p.entry) * p.qty : (p.entry - cp) * p.qty;
+            const moved = Math.abs(p.sl - p.initialSl) > 1e-8;
             return `
               <tr>
-                <td><strong>${p.coin}</strong></td>
-                <td><span class="badge ${p.side === "BUY" ? "b-buy" : "b-sell"}">${p.side}</span> <span style="font-size:0.7rem;color:var(--muted);">(${p.origin})</span></td>
-                <td>${fmt(p.entry)}</td>
-                <td>${fmt(p.sl)}</td>
+                <td><strong>${p.coin}</strong> <span style="font-size:0.7rem;color:var(--muted);">(${p.origin})</span></td>
+                <td><span class="badge ${p.side === "BUY" ? "b-buy" : "b-sell"}">${p.side}</span></td>
+                <td>${fmt(p.entry)} → <strong>${fmt(cp)}</strong></td>
+                <td><span style="color:var(--muted);">${fmt(p.initialSl)}</span> → <strong style="color:${moved ? "var(--buy)" : "var(--text)"};">${fmt(p.sl)}</strong></td>
                 <td>${fmt(p.tp)}</td>
+                <td><span class="badge b-guard">${p.guardStatus}</span></td>
                 <td class="${pnl >= 0 ? "pos-up" : "pos-down"}">${pnl >= 0 ? "+" : "-"}${fmt(Math.abs(pnl))}</td>
                 <td><button class="btn btn-ghost" onclick="closePosition(${i})">Exit</button></td>
               </tr>
@@ -667,7 +594,7 @@
       );
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
-      a.download = "crypto_360_smart_journal.csv";
+      a.download = "crypto_360_guard_journal.csv";
       a.click();
     }
 
@@ -695,8 +622,7 @@
             if (!t) return;
             const np = Number(item.last || t.price);
             if (np > 0) {
-              t.prev = t.price;
-              t.price = np;
+              t.prev = t.price; t.price = np;
               t.prices.push(np);
               if (t.prices.length > 60) t.prices.shift();
               lastCoin = c;
@@ -704,7 +630,6 @@
             if (item.change_pct !== undefined) t.chg24 = Number(item.change_pct);
             if (item.high !== undefined) t.high24 = Number(item.high);
             if (item.low !== undefined) t.low24 = Number(item.low);
-            if (item.volume !== undefined) t.vol24 = Number(item.volume);
 
             computeCoinIntelligence(t);
 
