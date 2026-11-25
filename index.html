@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>360° AI Crypto Demo Terminal — Multi-Timeframe Search &amp; Entry Timing</title>
+  <title>360° AI Crypto Demo Terminal — Day-Trade Future Engine &amp; Dynamic Guard</title>
   <style>
     :root {
       --bg: #060a12;
@@ -52,7 +52,7 @@
     .metric-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 9px; }
     .metric-box .mk { font-size: 0.7rem; color: var(--muted); }
     .metric-box .mv { font-size: 0.9rem; font-weight: 800; margin-top: 3px; }
-    .outlook-box { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 11px; margin-top: 10px; font-size: 0.82rem; line-height: 1.5; }
+    .outlook-box { background: var(--panel-2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 11px; margin-top: 10px; font-size: 0.82rem; line-height: 1.52; }
     .outlook-box.buy { border-left-color: var(--buy); }
     .outlook-box.sell { border-left-color: var(--sell); }
     .entry-banner { margin-top: 8px; padding: 9px 11px; border-radius: 8px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); font-size: 0.8rem; }
@@ -98,8 +98,8 @@
 
   <div class="topbar">
     <div class="brand">
-      <h1>⚡ 360° AI Crypto Demo Terminal — Multi-Timeframe Search &amp; Entry Timing</h1>
-      <p>সার্চ বারে মাস/সপ্তাহ/দিন, ক্যান্ডেল/টিক, RSI, ভলিউম ও নিউজ বিশ্লেষণে সম্ভাব্য দিক, % রেঞ্জ এবং কখন এন্ট্রি নেওয়া যুক্তিসঙ্গত তার নির্দেশনা</p>
+      <h1>⚡ 360° AI Crypto Demo Terminal — Day-Trade Future Engine &amp; Dynamic Guard</h1>
+      <p>লাইভ প্রাইস দ্রুত আপডেট হলেও Day-Trade Future Calculation স্থিতিশীল ক্যান্ডেল/বার, নিউজ, RSI ও ভলিউমে হিসাব হয়</p>
     </div>
     <div class="row-flex">
       <span id="wsBadge" class="pill warn">Connecting Kraken WS...</span>
@@ -118,10 +118,10 @@
     <div class="card"><div class="kpi-label">Current Balance (Equity)</div><div id="cEq" class="kpi-val">$10,000.00</div><div id="cGuardSub" class="kpi-sub">Last Check: Waiting for tick...</div></div>
   </div>
 
-  <!-- 2. Search Box (Multi-Timeframe + History + Candle/Tick + RSI + Volume + News + Entry Timing) -->
+  <!-- 2. Search Box (Stable Day-Trade Future Calculation) -->
   <div class="card" style="margin-bottom:12px;">
     <div class="row-flex" style="justify-content:space-between;">
-      <h2 style="font-size:1rem;">🔎 কয়েন সার্চ বক্স — Future Outlook, % Range &amp; Entry Timing</h2>
+      <h2 style="font-size:1rem;">🔎 ডে-ট্রেড ফিউচার ক্যালকুলেশন ও সার্চ বক্স (Previous/Live News, Candle, RSI &amp; Volume)</h2>
       <div class="row-flex">
         <button class="btn btn-ghost" onclick="quickSearch('BTC')">BTC</button>
         <button class="btn btn-ghost" onclick="quickSearch('ETH')">ETH</button>
@@ -133,8 +133,8 @@
     </div>
 
     <div class="search-bar">
-      <input id="deepSearchInput" type="text" placeholder="কয়েন লিখুন (যেমন: BTC, ETH, SOL, XRP, DOGE, ADA) এবং Analyze Future চাপুন..." onkeydown="if(event.key==='Enter') runDeepSearch()" />
-      <button class="btn btn-accent" onclick="runDeepSearch()">🔍 Analyze Future</button>
+      <input id="deepSearchInput" type="text" placeholder="কয়েন লিখুন (BTC, ETH, SOL, XRP, DOGE, ADA) এবং Analyze Day Trade চাপুন..." onkeydown="if(event.key==='Enter') runDeepSearch(true)" />
+      <button class="btn btn-accent" onclick="runDeepSearch(true)">🔍 Analyze Day Trade</button>
     </div>
 
     <div id="deepSearchResult"></div>
@@ -154,8 +154,8 @@
               <th>Coin</th>
               <th>Live Price</th>
               <th>24h %</th>
-              <th>360° Score</th>
-              <th>Signal</th>
+              <th>Day Score</th>
+              <th>Day Bias</th>
               <th>Quick ($300)</th>
             </tr>
           </thead>
@@ -239,7 +239,7 @@
     </div>
   </div>
 
-  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — সার্চ রিপোর্ট, এন্ট্রি টাইমিং বা ডাইনামিক SL বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
+  <div class="foot">⚠️ শিক্ষামূলক ডেমো সিমুলেশন — ডে-ট্রেড বিশ্লেষণ, % রেঞ্জ, এন্ট্রি গাইড বা ডাইনামিক SL বাস্তব বাজারে ১০০% নিশ্চিত লাভের গ্যারান্টি দেয় না।</div>
 
   <script>
     const SYMBOLS = ["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD", "DOGE/USD", "ADA/USD"];
@@ -257,12 +257,12 @@
       lastGuardCheckText: "Waiting for live price...",
       lastAutoTime: {},
       lastTick: performance.now(),
-      marketContext: {
-        monthBias: "Cautious / Late-Nov Position Shift",
-        weekBias: "Bearish / Range-Bound Pressure",
-        dayBias: "Volatility & Liquidity Watch",
-        newsScore: 44,
-        newsLabel: "Risk-Off / Caution"
+      // Multi-factor context (previous + current news/macro backdrop)
+      newsContext: {
+        prevNews: "নভেম্বরে বড় পতন ও ETF আউটফ্লো চাপের পর বাজার সাপোর্ট অঞ্চলে সতর্কতা তৈরি হয়েছে।",
+        liveNews: "BTC ডোমিন্যান্স ~59% কাছাকাছি এবং সামগ্রিক ম্যাক্রো ঝুঁকিতে ডে-ট্রেডে সাইজ ও SL নিয়ন্ত্রণ জরুরি।",
+        score: 45,
+        label: "Bearish / Cautious Day Bias"
       },
       guardNotes: ["Dynamic Guard চালু আছে: রানিং ট্রেডের প্রাইস ও মোমেন্টাম যাচাই করে SL সুরক্ষা আপডেট হয়।"],
       coins: {}
@@ -272,15 +272,25 @@
       const c = pair.split("/")[0];
       app.coins[c] = {
         coin: c, pair, price: 0, prev: 0, chg24: 0, high24: 0, low24: 0, vol24: 0,
-        prices: [], signal: "HOLD", score360: 50, rsi14: 50,
-        candleBias: "Neutral Tick", historySummary: "হিস্ট্রি সংগ্রহ হচ্ছে...",
-        volumeSummary: "ভলিউম যাচাই হচ্ছে...",
-        pctRangeText: "—",
-        entryTimingText: "লাইভ টিক এলে এন্ট্রি টাইমিং হিসাব হবে।",
-        directionPlan: "BUY", lowMarginAmt: 300, slPlan: 0, tpPlan: 0,
-        futurePossibility: "Waiting for setup",
-        whyText: "লাইভ ডেটা সংগ্রহ হচ্ছে...",
-        futureForecastDetail: "রিয়েল-টাইম প্রাইস টিক এলে বিস্তারিত ভবিষ্যৎ বিশ্লেষণ তৈরি হবে।"
+        prices: [],
+        // Stable synthetic/5s candle bars so future day-trade calculation doesn't jitter every tick
+        candles: [],
+        lastCandleTime: 0,
+        lastCalcTime: 0,
+        dayTrade: {
+          signal: "WAIT",
+          score: 50,
+          rsi14: 50,
+          pctRange: "—",
+          candleSummary: "ক্যান্ডেল/বার ডেটা সংগ্রহ হচ্ছে...",
+          volumeSummary: "ভলিউম যাচাই হচ্ছে...",
+          entryGuide: "কয়েক সেকেন্ড ক্যান্ডেল/বার তৈরি হলে ডে-ট্রেড এন্ট্রি সময় ও শর্ত দেখাবে।",
+          futureText: "আগের ও বর্তমান নিউজ, রানিং ক্যান্ডেল, RSI ও ভলিউম মিলিয়ে ডে-ট্রেডের সম্ভাব্য দিক হিসাব হচ্ছে।",
+          directionPlan: "SELL",
+          lowMarginAmt: 300,
+          slPlan: 0,
+          tpPlan: 0
+        }
       };
     });
 
@@ -291,18 +301,114 @@
       return "$" + n.toFixed(6);
     }
 
-    function calcRSI(arr, period = 14) {
-      if (!arr || arr.length < 3) return 50;
-      const slice = arr.slice(-(period + 1));
+    function calcRSIFromSeries(closes, period = 14) {
+      if (!closes || closes.length < 3) return 50;
+      const slice = closes.slice(-(period + 1));
       let gains = 0, losses = 0;
       for (let i = 1; i < slice.length; i++) {
         const diff = slice[i] - slice[i - 1];
         if (diff > 0) gains += diff;
         else losses += Math.abs(diff);
       }
-      if (losses === 0) return gains > 0 ? 72 : 50;
-      if (gains === 0) return 28;
-      return Math.round(Math.max(5, Math.min(95, 100 - (100 / (1 + (gains / losses))))));
+      if (losses === 0) return gains > 0 ? 70 : 50;
+      if (gains === 0) return 30;
+      return Math.round(Math.max(8, Math.min(92, 100 - (100 / (1 + (gains / losses))))));
+    }
+
+    // Build stable 5-second candles from live ticks so Day-Trade forecast behaves like a candle/chart study
+    function recordCandleTick(t, price, vol24, nowMs) {
+      if (!price || price <= 0) return;
+      const bucketMs = 5000;
+      const bucket = Math.floor(nowMs / bucketMs) * bucketMs;
+      if (!t.candles.length || t.lastCandleTime !== bucket) {
+        t.candles.push({ open: price, high: price, low: price, close: price, volDelta: 0 });
+        if (t.candles.length > 40) t.candles.shift();
+        t.lastCandleTime = bucket;
+      } else {
+        const cur = t.candles[t.candles.length - 1];
+        cur.high = Math.max(cur.high, price);
+        cur.low = Math.min(cur.low, price);
+        cur.close = price;
+        cur.volDelta += Math.max(1, (vol24 || 100) * 0.0001);
+      }
+    }
+
+    // Stable Day-Trade calculation: updates on manual/coin select or every 5s candle bucket (not every micro-tick)
+    function recalculateDayTrade(t, force = false) {
+      const nowMs = Date.now();
+      if (!force && t.lastCalcTime && (nowMs - t.lastCalcTime) < 4800) return;
+      if (t.price <= 0 || t.candles.length < 2) return;
+
+      t.lastCalcTime = nowMs;
+      const closes = t.candles.map(c => c.close);
+      const lastC = t.candles[t.candles.length - 1];
+      const prevC = t.candles[t.candles.length - 2] || lastC;
+
+      const rsi = calcRSIFromSeries(closes, 14);
+      const fastC = closes.slice(-Math.min(4, closes.length)).reduce((a, b) => a + b, 0) / Math.min(4, closes.length);
+      const slowC = closes.slice(-Math.min(16, closes.length)).reduce((a, b) => a + b, 0) / Math.min(16, closes.length);
+
+      const range24 = Math.max(t.high24 - t.low24, t.price * 0.02);
+      const posInRange = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
+      const atrEst = Math.max(t.price * 0.007, range24 * 0.018);
+
+      const candleDir = lastC.close >= lastC.open
+        ? (lastC.close > prevC.close ? "Bullish Candle (উপরের দিকে ক্লোজ)" : "Green Bounce Candle (পুলব্যাক ক্যান্ডেল)")
+        : (lastC.close < prevC.close ? "Bearish Candle (নিচের দিকে ক্লোজ)" : "Red Pullback Candle (চাপযুক্ত ক্যান্ডেল)");
+
+      const candleSummary = `রানিং ক্যান্ডেল: ${candleDir} | Open ${fmt(lastC.open)} → Close ${fmt(lastC.close)}`;
+      const volumeSummary = `24h ভলিউম: ${Number(t.vol24 || 0).toLocaleString("en-US", { maximumFractionDigits: 0 })} | রেঞ্জ অবস্থান: ${(posInRange * 100).toFixed(0)}%`;
+
+      let bull = 44, bear = 52;
+      if (fastC > slowC) bull += 14; else bear += 14;
+      if (lastC.close >= lastC.open) bull += 7; else bear += 7;
+      if (t.chg24 > 1.5) bull += 6; else if (t.chg24 < -1.5) bear += 7;
+      if (rsi <= 32) bull += 10; else if (rsi >= 68) bear += 10;
+      if (app.newsContext.score >= 58) bull += 6; else bear += 6;
+
+      const lowPct = (-Math.max(1.5, Math.min(4.8, (range24 / t.price) * 45))).toFixed(1);
+      const highPct = (+Math.max(1.8, Math.min(5.5, (range24 / t.price) * 52))).toFixed(1);
+      const pctRange = `${lowPct}% থেকে ${highPct}%`;
+      const lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
+
+      let signal = "WAIT", score = 52, directionPlan = "SELL", slPlan = t.price + atrEst, tpPlan = t.price - atrEst * 1.8;
+      let entryGuide = "", futureText = "";
+
+      if (bear > bull && bear >= 62) {
+        signal = "SELL";
+        score = Math.min(90, bear);
+        directionPlan = "SELL";
+        slPlan = t.price + atrEst;
+        tpPlan = Math.max(0.000001, t.price - atrEst * 1.8);
+        entryGuide = posInRange >= 0.45
+          ? `ডে-ট্রেড এন্ট্রি সময়: দাম মাঝামাঝি/ওপরের রেঞ্জে (${(posInRange * 100).toFixed(0)}%) ও ক্যান্ডেল কাঠামো নিম্নমুখী থাকলে ছোট/লো-মার্জিন SELL এন্ট্রি বিবেচনা করা যায়; SL ${fmt(slPlan)} এর ওপরে রাখুন।`
+          : `ডে-ট্রেড এন্ট্রি সময়: দাম ইতিমধ্যে নিচের সাপোর্টের কাছে (${(posInRange * 100).toFixed(0)}%) আছে—হুট করে নিচে শর্ট না করে সামান্য বাউন্স ও রিজেকশন ক্যান্ডেল দেখে SELL এন্ট্রি নেওয়া নিরাপদ।`;
+        futureText = `আগের পতন/ETF চাপ ও বর্তমান সতর্ক নিউজ (${app.newsContext.score}%), ${candleSummary}, RSI (${rsi}) এবং ${volumeSummary} বিশ্লেষণে ডে-ট্রেডে সম্ভাব্য মুভমেন্ট ${pctRange}—নিচে ${fmt(tpPlan)} টার্গেট জোন হতে পারে।`;
+      } else if (bull >= bear && bull >= 62) {
+        signal = "BUY";
+        score = Math.min(90, bull);
+        directionPlan = "BUY";
+        slPlan = Math.max(0.000001, t.price - atrEst);
+        tpPlan = t.price + atrEst * 1.8;
+        entryGuide = posInRange <= 0.5
+          ? `ডে-ট্রেড এন্ট্রি সময়: সাপোর্ট জোনের কাছাকাছি (${(posInRange * 100).toFixed(0)}%) ও বুলিশ ক্যান্ডেল কনফার্মেশন পেলে লো-মার্জিন BUY এন্ট্রি নেওয়া যায়; SL ${fmt(slPlan)} এর নিচে রাখুন।`
+          : `ডে-ট্রেড এন্ট্রি সময়: দাম ইতিমধ্যে ওপরে উঠে গেছে (${(posInRange * 100).toFixed(0)}%)—তাড়াহুড়ো না করে ছোট পুলব্যাক (নিচে নেমে সাপোর্ট ধরলে) দেখে BUY এন্ট্রি নেওয়া যুক্তিসঙ্গত।`;
+        futureText = `স্বল্পমেয়াদী রিকভারি, ${candleSummary}, RSI (${rsi}) এবং ${volumeSummary} মিলিয়ে ডে-ট্রেডে সম্ভাব্য মুভমেন্ট ${pctRange}—উপরে ${fmt(tpPlan)} এর দিকে বাউন্স হতে পারে, তবে সামগ্রিক ম্যাক্রো ঝুঁকি মাথায় রাখুন।`;
+      } else {
+        signal = "WAIT";
+        score = Math.max(48, Math.min(60, Math.max(bull, bear)));
+        directionPlan = fastC >= slowC ? "BUY" : "SELL";
+        slPlan = directionPlan === "BUY" ? t.price - atrEst : t.price + atrEst;
+        tpPlan = directionPlan === "BUY" ? t.price + atrEst * 1.6 : t.price - atrEst * 1.6;
+        entryGuide = `ডে-ট্রেড এন্ট্রি সময়: এখনই বড় বা তাড়াহুড়োর এন্ট্রি এড়িয়ে চলুন। ক্যান্ডেল রেঞ্জের স্পষ্ট ব্রেকআউট/ব্রেকডাউন এবং ভলিউম নিশ্চিত হলে ${directionPlan} প্ল্যান (SL ${fmt(slPlan)}, TP ${fmt(tpPlan)}) যাচাই করুন।`;
+        futureText = `আগের ও বর্তমান নিউজ, ${candleSummary}, RSI (${rsi}) এবং ${volumeSummary} অনুযায়ী ডে-ট্রেডে বাজার এখন সাইডওয়েজ/সতর্ক অবস্থায় আছে; সম্ভাব্য রেঞ্জ ${pctRange}।`;
+      }
+
+      t.dayTrade = {
+        signal, score, rsi14: rsi, pctRange,
+        candleSummary, volumeSummary, entryGuide, futureText,
+        directionPlan, lowMarginAmt, slPlan, tpPlan
+      };
     }
 
     function pushGuardNote(txt) {
@@ -311,121 +417,48 @@
       if (app.guardNotes.length > 20) app.guardNotes.pop();
     }
 
-    function computeCoinIntelligence(t) {
-      const s = t.prices;
-      if (s.length < 4 || t.price <= 0) {
-        t.signal = "HOLD"; t.score360 = 50; t.rsi14 = 50; t.directionPlan = "BUY";
-        t.lowMarginAmt = Math.max(50, Math.round(app.cash * 0.03));
-        t.pctRangeText = "—";
-        t.entryTimingText = "প্রাথমিক টিক সংগ্রহ হচ্ছে; ২–৩টি টিকের পর এন্ট্রি জোনের হিসাব দেখাবে।";
-        t.whyText = "রিয়েল-টাইম প্রাইস গতিবিধি সংগ্রহ হচ্ছে...";
-        t.futureForecastDetail = "লাইভ টিক সংগ্রহ চলছে—কয়েক সেকেন্ডে হিস্ট্রি, RSI ও ভলিউম হিসাব পূর্ণ হবে।";
-        return;
-      }
-
-      const fast = s.slice(-Math.min(4, s.length)).reduce((a, b) => a + b, 0) / Math.min(4, s.length);
-      const slow = s.slice(-Math.min(18, s.length)).reduce((a, b) => a + b, 0) / Math.min(18, s.length);
-      const momPct = ((t.price - s[0]) / s[0]) * 100;
-      const prevP = s[s.length - 2] || t.price;
-      const prev2P = s[s.length - 3] || prevP;
-      const microPct = ((t.price - prevP) / prevP) * 100;
-
-      t.rsi14 = calcRSI(s, 14);
-      const range24 = Math.max(t.high24 - t.low24, t.price * 0.015);
-      const rangePos = Math.max(0, Math.min(1, (t.price - t.low24) / range24));
-      const volEst = Math.max(t.price * 0.006, range24 * 0.014);
-      const minHist = Math.min(...s), maxHist = Math.max(...s);
-
-      t.historySummary = `মাস/সপ্তাহ/দিন প্রেক্ষাপট (${app.marketContext.weekBias}) + হিস্ট্রি রেঞ্জ ${fmt(minHist)} – ${fmt(maxHist)} (24h ${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%)`;
-      t.volumeSummary = `24h ভলিউম: ${Number(t.vol24 || 0).toLocaleString("en-US", { maximumFractionDigits: 1 })} | বর্তমান টিক: ${microPct >= 0 ? "+" : ""}${microPct.toFixed(3)}%`;
-
-      if (t.price >= prevP && prevP >= prev2P) t.candleBias = "Bullish Continuation (পরপর সবুজ টিক চাপ)";
-      else if (t.price <= prevP && prevP <= prev2P) t.candleBias = "Bearish Continuation (পরপর লাল টিক চাপ)";
-      else if (t.price > prevP && prevP < prev2P) t.candleBias = "Bullish Reversal (নিচে থেকে বাউন্স)";
-      else if (t.price < prevP && prevP > prev2P) t.candleBias = "Bearish Rejection (ওপর থেকে চাপ)";
-      else t.candleBias = "Balanced / Sideways Tick";
-
-      let bull = 46, bear = 50;
-      if (fast > slow) bull += 14; else bear += 14;
-      if (momPct > 0.04) bull += 10; else if (momPct < -0.04) bear += 10;
-      if (t.chg24 > 1.2) bull += 6; else if (t.chg24 < -1.2) bear += 7;
-      if (t.rsi14 <= 30) bull += 10; else if (t.rsi14 >= 70) bear += 10;
-      if (app.marketContext.newsScore >= 60) bull += 5; else if (app.marketContext.newsScore <= 45) bear += 5;
-
-      t.lowMarginAmt = Math.max(50, Math.min(Math.round(app.cash * 0.03), 1000));
-      const lowPct = (-Math.max(1.5, Math.min(4.5, (range24 / Math.max(t.price, 1)) * 45))).toFixed(1);
-      const highPct = (+Math.max(1.8, Math.min(6.0, (range24 / Math.max(t.price, 1)) * 55))).toFixed(1);
-      t.pctRangeText = `${lowPct}% থেকে ${highPct}%`;
-
-      if (bull >= bear && bull >= 60) {
-        t.signal = "BUY"; t.directionPlan = "BUY"; t.score360 = Math.min(92, bull);
-        t.slPlan = Math.max(0.000001, t.price - volEst);
-        t.tpPlan = t.price + volEst * 1.8;
-        t.futurePossibility = `সম্ভাব্য BUY (${t.score360}%) — স্বল্পমেয়াদী বাউন্স / রিকভারি`;
-        t.entryTimingText = rangePos <= 0.45
-          ? `এন্ট্রি টাইমিং: এখন সাপোর্ট/নিচের রেঞ্জে (${(rangePos * 100).toFixed(0)}%) ও RSI ${t.rsi14} থাকায় কম মার্জিনে BUY এন্ট্রি বিবেচনা করা যায়; SL ${fmt(t.slPlan)} এর নিচে রাখুন।`
-          : `এন্ট্রি টাইমিং: দাম ইতিমধ্যে ওপরের দিকে (${(rangePos * 100).toFixed(0)}%) আছে—হুট করে চূড়ায় না ঢুকে ছোট পুলব্যাক (নিচে নামলে) বা কনফার্মেশন দেখে BUY এন্ট্রি নেওয়া নিরাপদ।`;
-        t.whyText = `BUY অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, রেঞ্জ ${t.pctRangeText}।`;
-        t.futureForecastDetail = `মাস/সপ্তাহের সতর্ক ট্রেন্ড, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.marketContext.newsScore}%) মিলিয়ে সম্ভাব্য মুভমেন্ট রেঞ্জ ${t.pctRangeText}—টার্গেট ${fmt(t.tpPlan)} এর দিকে যেতে পারে।`;
-      } else if (bear > bull && bear >= 60) {
-        t.signal = "SELL"; t.directionPlan = "SELL"; t.score360 = Math.min(92, bear);
-        t.slPlan = t.price + volEst;
-        t.tpPlan = Math.max(0.000001, t.price - volEst * 1.8);
-        t.futurePossibility = `সম্ভাব্য SELL (${t.score360}%) — নিম্নমুখী চাপ সক্রিয়`;
-        t.entryTimingText = rangePos >= 0.55
-          ? `এন্ট্রি টাইমিং: দাম ওপরের রেঞ্জে (${(rangePos * 100).toFixed(0)}%) ও নিম্নমুখী চাপে থাকায় SELL এন্ট্রি বিবেচনা করা যায়; SL ${fmt(t.slPlan)} এর ওপরে রাখুন।`
-          : `এন্ট্রি টাইমিং: দাম ইতিমধ্যে নিচের দিকে (${(rangePos * 100).toFixed(0)}%) থাকায় একদম তলানিতে শর্ট না করে সামান্য বাউন্স/রিজেকশন দেখে SELL এন্ট্রি নেওয়া যুক্তিসঙ্গত।`;
-        t.whyText = `SELL অনুকূল (${t.score360}%): ${t.candleBias}, RSI ${t.rsi14}, রেঞ্জ ${t.pctRangeText}।`;
-        t.futureForecastDetail = `সাপ্তাহিক/দৈনিক চাপ, ${t.candleBias}, RSI (${t.rsi14}), ${t.volumeSummary} এবং নিউজ (${app.marketContext.newsScore}%) মিলিয়ে সম্ভাব্য মুভমেন্ট রেঞ্জ ${t.pctRangeText}—টার্গেট ${fmt(t.tpPlan)} এর দিকে নামার ঝুঁকি/সম্ভাবনা বেশি।`;
-      } else {
-        t.signal = "HOLD"; t.directionPlan = fast >= slow ? "BUY" : "SELL";
-        t.score360 = Math.max(46, Math.min(59, Math.max(bull, bear)));
-        t.slPlan = t.directionPlan === "BUY" ? t.price - volEst : t.price + volEst;
-        t.tpPlan = t.directionPlan === "BUY" ? t.price + volEst * 1.6 : t.price - volEst * 1.6;
-        t.futurePossibility = `WAIT / RANGE (${t.score360}%) — স্পষ্ট ব্রেকআউটের অপেক্ষা`;
-        t.entryTimingText = `এন্ট্রি টাইমিং: এখনই তাড়াহুড়ো করে এন্ট্রি না নেওয়াই ভালো। রেঞ্জের নিচের প্রান্ত বা স্পষ্ট ব্রেকআউট/ব্রেকডাউন নিশ্চিত হলে ${t.directionPlan} দিকের প্ল্যান (SL ${fmt(t.slPlan)}, TP ${fmt(t.tpPlan)}) যাচাই করুন।`;
-        t.whyText = `WAIT (${t.score360}%): RSI ${t.rsi14} ও ${t.candleBias} রেঞ্জিং অবস্থায় আছে।`;
-        t.futureForecastDetail = `মাস/সপ্তাহ/দিনের কাঠামো ও ${t.volumeSummary} অনুযায়ী বাজার এখন সাইডওয়েজ/সতর্ক অবস্থায় আছে; সম্ভাব্য ওঠানামা ${t.pctRangeText} এর মধ্যে থাকতে পারে।`;
-      }
-    }
-
-    function renderDeepSearch() {
+    function renderDayTradeSearch() {
       const t = app.coins[app.searchedCoin];
-      const container = document.getElementById("deepSearchResult");
       if (!t) return;
-      const cls = t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "");
-      const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
-      const rsiTag = t.rsi14 >= 70 ? "Overbought" : (t.rsi14 <= 30 ? "Oversold" : "Balanced");
+      const d = t.dayTrade;
+      const box = document.getElementById("deepSearchResult");
+      const cls = d.signal === "BUY" ? "buy" : (d.signal === "SELL" ? "sell" : "");
+      const bCls = d.signal === "BUY" ? "b-buy" : (d.signal === "SELL" ? "b-sell" : "b-hold");
+      const rsiTag = d.rsi14 >= 70 ? "Overbought" : (d.rsi14 <= 30 ? "Oversold" : "Neutral");
 
-      container.innerHTML = `
+      box.innerHTML = `
         <div class="deep-grid">
           <div class="metric-box"><div class="mk">Coin &amp; Live Price</div><div class="mv">${t.coin} — ${fmt(t.price)}</div></div>
-          <div class="metric-box"><div class="mk">সম্ভাব্য % রেঞ্জ</div><div class="mv">${t.pctRangeText}</div></div>
-          <div class="metric-box"><div class="mk">RSI (14)</div><div class="mv">${t.rsi14} (${rsiTag})</div></div>
-          <div class="metric-box"><div class="mk">360° Score &amp; Side</div><div class="mv">${t.score360}% (${t.signal})</div></div>
-          <div class="metric-box"><div class="mk">Auto SL / Target</div><div class="mv">${fmt(t.slPlan)} / ${fmt(t.tpPlan)}</div></div>
+          <div class="metric-box"><div class="mk">Day-Trade % Range</div><div class="mv">${d.pctRange}</div></div>
+          <div class="metric-box"><div class="mk">RSI (14)</div><div class="mv">${d.rsi14} (${rsiTag})</div></div>
+          <div class="metric-box"><div class="mk">Day Score &amp; Call</div><div class="mv">${d.score}% (${d.signal})</div></div>
+          <div class="metric-box"><div class="mk">Low-Margin / SL / TP</div><div class="mv">$${d.lowMarginAmt} | ${fmt(d.slPlan)} / ${fmt(d.tpPlan)}</div></div>
         </div>
         <div class="outlook-box ${cls}">
           <div style="display:flex;justify-content:space-between;align-items:center;font-weight:800;margin-bottom:4px;">
-            <span>🔮 ভবিষ্যৎ সম্ভাবনা: ${t.futurePossibility}</span>
-            <span class="badge ${bCls}">${t.signal}</span>
+            <span>📅 ডে-ট্রেড ভবিষ্যৎ বিশ্লেষণ (${t.coin}/USD — স্থিতিশীল ক্যান্ডেল/বার হিসাব)</span>
+            <span class="badge ${bCls}">${d.signal}</span>
           </div>
-          <div><strong>ভবিষ্যতে কী হতে পারে:</strong> ${t.futureForecastDetail}</div>
-          <div class="entry-banner"><strong>⏱️ কখন এন্ট্রি নেওয়া যুক্তিসঙ্গত:</strong> ${t.entryTimingText}</div>
+          <div><strong>ভবিষ্যৎ সম্ভাবনা:</strong> ${d.futureText}</div>
+          <div class="entry-banner"><strong>⏱️ কখন এন্ট্রি নেওয়া যুক্তিসঙ্গত:</strong> ${d.entryGuide}</div>
           <div style="margin-top:6px;color:var(--muted);font-size:0.77rem;">
-            • <strong>মাস/সপ্তাহ/দিন ও হিস্ট্রি:</strong> ${t.historySummary} | <strong>ক্যালেন্ডার:</strong> ${app.marketContext.monthBias}<br/>
-            • <strong>ক্যান্ডেল/টিক:</strong> ${t.candleBias}<br/>
-            • <strong>ভলিউম ও নিউজ:</strong> ${t.volumeSummary} | News: ${app.marketContext.newsScore}% (${app.marketContext.newsLabel})
+            • <strong>আগের ও বর্তমান নিউজ/ম্যাক্রো:</strong> ${app.newsContext.prevNews} | ${app.newsContext.liveNews}<br/>
+            • <strong>রানিং ক্যান্ডেল ও ভলিউম:</strong> ${d.candleSummary} | ${d.volumeSummary}
           </div>
         </div>
       `;
     }
 
-    function runDeepSearch() {
+    function runDeepSearch(forceCalc = true) {
       const raw = (document.getElementById("deepSearchInput").value || "").trim().toUpperCase().replace("/USD", "").replace("USDT", "").replace("USD", "");
       if (app.coins[raw]) {
         app.searchedCoin = raw;
-        selectCoin(raw);
+        app.selectedCoin = raw;
+        document.getElementById("studyCoin").value = raw;
+        recalculateDayTrade(app.coins[raw], forceCalc);
+        applyAutoPlanToInputs(true);
+        renderBoard(null);
+        renderDayTradeSearch();
       } else {
         document.getElementById("deepSearchResult").innerHTML =
           `<div class="outlook-box"><strong>"${raw || "খালি"}"</strong> পাওয়া যায়নি। <strong>BTC, ETH, SOL, XRP, DOGE</strong> অথবা <strong>ADA</strong> লিখুন।</div>`;
@@ -434,8 +467,7 @@
 
     function quickSearch(c) {
       document.getElementById("deepSearchInput").value = c;
-      app.searchedCoin = c;
-      selectCoin(c);
+      runDeepSearch(true);
     }
 
     function selectCoin(coin) {
@@ -444,35 +476,37 @@
       app.searchedCoin = coin;
       document.getElementById("studyCoin").value = coin;
       document.getElementById("deepSearchInput").value = coin;
+      recalculateDayTrade(app.coins[coin], true);
       applyAutoPlanToInputs(true);
       renderBoard(null);
-      renderDeepSearch();
+      renderDayTradeSearch();
     }
 
     function applyAutoPlanToInputs(overwrite = true) {
       const t = app.coins[app.selectedCoin];
       if (!t) return;
-      const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
-      document.getElementById("autoPlanCard").className = `box-item ${t.signal === "BUY" ? "buy" : (t.signal === "SELL" ? "sell" : "")}`;
+      const d = t.dayTrade;
+      const bCls = d.signal === "BUY" ? "b-buy" : (d.signal === "SELL" ? "b-sell" : "b-hold");
+      document.getElementById("autoPlanCard").className = `box-item ${d.signal === "BUY" ? "buy" : (d.signal === "SELL" ? "sell" : "")}`;
       document.getElementById("autoPlanCard").innerHTML = `
         <div style="display:flex;justify-content:space-between;font-weight:800;">
           <span>${t.coin}/USD — Live: ${fmt(t.price)}</span>
-          <span class="badge ${bCls}">${t.signal} (${t.score360}%)</span>
+          <span class="badge ${bCls}">${d.signal} (${d.score}%)</span>
         </div>
-        <div style="color:var(--muted);font-size:0.76rem;margin-top:4px;">${t.whyText}</div>
+        <div style="color:var(--muted);font-size:0.76rem;margin-top:4px;">${d.entryGuide}</div>
         <div class="auto-plan-grid">
-          <div class="plan-chip"><div class="k">দিক</div><div class="v">${t.directionPlan}</div></div>
-          <div class="plan-chip"><div class="k">Low-Margin</div><div class="v">$${t.lowMarginAmt}</div></div>
-          <div class="plan-chip"><div class="k">Stop-Loss</div><div class="v">${fmt(t.slPlan)}</div></div>
-          <div class="plan-chip"><div class="k">Target</div><div class="v">${fmt(t.tpPlan)}</div></div>
+          <div class="plan-chip"><div class="k">দিক</div><div class="v">${d.directionPlan}</div></div>
+          <div class="plan-chip"><div class="k">Low-Margin</div><div class="v">$${d.lowMarginAmt}</div></div>
+          <div class="plan-chip"><div class="k">Stop-Loss</div><div class="v">${fmt(d.slPlan)}</div></div>
+          <div class="plan-chip"><div class="k">Target</div><div class="v">${fmt(d.tpPlan)}</div></div>
         </div>
       `;
       if (overwrite && t.price > 0) {
-        document.getElementById("mDir").value = t.directionPlan;
-        document.getElementById("mAmt").value = t.lowMarginAmt;
+        document.getElementById("mDir").value = d.directionPlan;
+        document.getElementById("mAmt").value = d.lowMarginAmt;
         const dec = t.price >= 1 ? 4 : 6;
-        document.getElementById("mSl").value = Number(t.slPlan).toFixed(dec);
-        document.getElementById("mTp").value = Number(t.tpPlan).toFixed(dec);
+        document.getElementById("mSl").value = Number(d.slPlan).toFixed(dec);
+        document.getElementById("mTp").value = Number(d.tpPlan).toFixed(dec);
       }
     }
 
@@ -570,7 +604,7 @@
         });
       }
       SYMBOLS.forEach(pair => {
-        const c = pair.split("/")[0], t = app.coins[c];
+        const c = pair.split("/")[0], t = app.coins[c], d = t.dayTrade;
         document.getElementById(`tr-${c}`).className = `selectable-row ${c === app.selectedCoin ? "active-coin" : ""}`;
         const pEl = document.getElementById(`p-${c}`);
         pEl.textContent = fmt(t.price);
@@ -579,12 +613,12 @@
           pEl.classList.add(t.price > t.prev ? "flash-up" : "flash-down");
         }
         document.getElementById(`c-${c}`).innerHTML = `<span class="${t.chg24 >= 0 ? "pos-up" : "pos-down"}">${t.chg24 >= 0 ? "+" : ""}${t.chg24.toFixed(2)}%</span>`;
-        document.getElementById(`sc-${c}`).innerHTML = `<strong>${t.score360}%</strong>`;
-        const bCls = t.signal === "BUY" ? "b-buy" : (t.signal === "SELL" ? "b-sell" : "b-hold");
-        document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${t.signal}</span>`;
+        document.getElementById(`sc-${c}`).innerHTML = `<strong>${d.score}%</strong>`;
+        const bCls = d.signal === "BUY" ? "b-buy" : (d.signal === "SELL" ? "b-sell" : "b-hold");
+        document.getElementById(`sg-${c}`).innerHTML = `<span class="badge ${bCls}">${d.signal}</span>`;
       });
       applyAutoPlanToInputs(false);
-      renderDeepSearch();
+      renderDayTradeSearch();
     }
 
     function renderGuardLog() {
@@ -600,13 +634,13 @@
       if (app.positions.length > 0) app.lastGuardCheckText = `Checked ${app.positions.length} active trade(s) at ${new Date().toLocaleTimeString()}`;
 
       for (let i = app.positions.length - 1; i >= 0; i--) {
-        const p = app.positions[i], t = app.coins[p.coin], cp = t?.price || p.entry;
+        const p = app.positions[i], t = app.coins[p.coin], cp = t?.price || p.entry, d = t?.dayTrade;
         if (p.side === "BUY") {
           const gainPct = ((cp - p.entry) / p.entry) * 100;
           if (gainPct >= 0.6) {
             const nextSl = Math.max(p.sl, p.entry * 1.002, cp * 0.995);
             if (nextSl > p.sl * 1.0002) { p.sl = nextSl; p.guardStatus = "Profit Locked / Trailing"; app.guardAdjustCount += 1; pushGuardNote(`GUARD UPDATED (${p.coin} BUY): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL ${fmt(p.sl)} করা হয়েছে।`); }
-          } else if (t && t.signal === "SELL" && t.score360 >= 64 && cp < p.entry) {
+          } else if (d && d.signal === "SELL" && d.score >= 64 && cp < p.entry) {
             const nextSl = Math.max(p.sl, cp * 0.996);
             if (nextSl > p.sl * 1.0002) { p.sl = nextSl; p.guardStatus = "Loss Limit Tightened"; app.guardAdjustCount += 1; pushGuardNote(`GUARD TIGHTENED (${p.coin} BUY): SELL চাপ বাড়ায় লস-লিমিট ${fmt(p.sl)} করা হয়েছে।`); }
           }
@@ -615,7 +649,7 @@
           if (gainPct >= 0.6) {
             const nextSl = Math.min(p.sl, p.entry * 0.998, cp * 1.005);
             if (nextSl < p.sl * 0.9998) { p.sl = nextSl; p.guardStatus = "Profit Locked / Trailing"; app.guardAdjustCount += 1; pushGuardNote(`GUARD UPDATED (${p.coin} SELL): লাভ +${gainPct.toFixed(2)}% হওয়ায় SL ${fmt(p.sl)} করা হয়েছে।`); }
-          } else if (t && t.signal === "BUY" && t.score360 >= 64 && cp > p.entry) {
+          } else if (d && d.signal === "BUY" && d.score >= 64 && cp > p.entry) {
             const nextSl = Math.min(p.sl, cp * 1.004);
             if (nextSl < p.sl * 0.9998) { p.sl = nextSl; p.guardStatus = "Loss Limit Tightened"; app.guardAdjustCount += 1; pushGuardNote(`GUARD TIGHTENED (${p.coin} SELL): BUY চাপ বাড়ায় লস-লিমিট ${fmt(p.sl)} করা হয়েছে।`); }
           }
@@ -670,7 +704,7 @@
       const lines = ["Time,Coin,Side,Entry,Exit,PnL,Reason"].concat(
         app.history.map(h => `${h.time},${h.coin},${h.side},${h.entry},${h.exit},${h.pnl.toFixed(2)},${h.reason}`)
       );
-      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_entry_timing_journal.csv"; a.click();
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" })); a.download = "crypto_360_daytrade_journal.csv"; a.click();
     }
 
     function startWS() {
@@ -680,22 +714,32 @@
       ws.onmessage = (ev) => {
         const msg = JSON.parse(ev.data);
         if (msg.channel === "ticker" && Array.isArray(msg.data)) {
-          const now = performance.now();
-          document.getElementById("msBadge").textContent = `Tick: ${Math.max(1, Math.round(now - app.lastTick))} ms`;
-          app.lastTick = now;
+          const nowPerf = performance.now();
+          const nowMs = Date.now();
+          document.getElementById("msBadge").textContent = `Tick: ${Math.max(1, Math.round(nowPerf - app.lastTick))} ms`;
+          app.lastTick = nowPerf;
           let lastCoin = null;
           msg.data.forEach(item => {
             const c = (item.symbol || "").split("/")[0], t = app.coins[c];
             if (!t) return;
             const np = Number(item.last || t.price);
-            if (np > 0) { t.prev = t.price; t.price = np; t.prices.push(np); if (t.prices.length > 60) t.prices.shift(); lastCoin = c; }
+            if (np > 0) {
+              t.prev = t.price; t.price = np;
+              t.prices.push(np); if (t.prices.length > 60) t.prices.shift();
+              recordCandleTick(t, np, t.vol24, nowMs);
+              lastCoin = c;
+            }
             if (item.change_pct !== undefined) t.chg24 = Number(item.change_pct);
             if (item.high !== undefined) t.high24 = Number(item.high);
             if (item.low !== undefined) t.low24 = Number(item.low);
             if (item.volume !== undefined) t.vol24 = Number(item.volume);
-            computeCoinIntelligence(t);
-            if (app.autoBot && !app.killSwitch && t.score360 >= 62 && (t.signal === "BUY" || t.signal === "SELL") && now - (app.lastAutoTime[c] || 0) > 15000 && app.positions.length < 3) {
-              app.lastAutoTime[c] = now; createPosition(c, t.signal, t.lowMarginAmt, t.slPlan, t.tpPlan, "AUTO-BOT");
+
+            recalculateDayTrade(t, false);
+
+            const d = t.dayTrade;
+            if (app.autoBot && !app.killSwitch && d.score >= 62 && (d.signal === "BUY" || d.signal === "SELL") && nowPerf - (app.lastAutoTime[c] || 0) > 15000 && app.positions.length < 3) {
+              app.lastAutoTime[c] = nowPerf;
+              createPosition(c, d.signal, d.lowMarginAmt, d.slPlan, d.tpPlan, "AUTO-BOT");
             }
           });
           renderBoard(lastCoin); renderPositionsAndCards();
